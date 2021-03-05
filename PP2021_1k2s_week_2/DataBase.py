@@ -5,7 +5,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Настройки подключения
 db_name = "rss_db"
-db_password = "010112Artiom"
+db_password = "F9285858ND"
 db_user_name = "postgres"
 db_host_name = "127.0.0.1"
 db_port_number ="5432"
@@ -70,7 +70,7 @@ def create_tables():
         sql_create_tables = "CREATE TABLE public.rss_entries (raw_xml xml," \
                             "from_url VARCHAR(200),"\
                             "rss_author VARCHAR(100),"\
-                            "rss_content text,"\
+                            "rss_content VARCHAR(20000),"\
                             "rss_id VARCHAR(200),"\
                             "rss_published timestamp with time zone,"\
                             "rss_publisher VARCHAR(100),"\
