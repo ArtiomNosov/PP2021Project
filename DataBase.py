@@ -2,18 +2,19 @@ import psycopg2
 from psycopg2 import Error
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+
 # Настройки подключения
-db_name = "person_list"
+db_name = "rss_db"
 db_password = "010112"
 db_user_name = "postgres"
 db_host_name = "127.0.0.1"
 db_port_number ="5432"
 
+
 connection = None
 cursor = None
 
-
-def open_db_connection_p():
+def open_db_connection():
     global connection, cursor
     try:
         connection = psycopg2.connect(user=db_user_name,\
@@ -26,8 +27,7 @@ def open_db_connection_p():
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
 
-
-def close_db_connection_p():
+def close_db_connection():
     global connection, cursor
     if  connection:
         cursor.close()
@@ -35,7 +35,7 @@ def close_db_connection_p():
         print("Соединение с PostgreSQL закрыто")
 
 
-def create_database_p():
+def create_database():
     try:
         # Подключение к существующей базе данных
         connection = psycopg2.connect(user=db_user_name,
@@ -56,8 +56,7 @@ def create_database_p():
             connection.close()
             print("Соединение с PostgreSQL закрыто")
 
-
-def create_tables_p():
+def create_tables():
     try:
         # Подключение к существующей базе данных
         connection = psycopg2.connect(user=db_user_name,
@@ -68,11 +67,18 @@ def create_tables_p():
         # Курсор для выполнения операций с базой данных
         cursor = connection.cursor()
         # SQL для создания таблицы
-        sql_create_tables = "CREATE TABLE public.rss_entries (" \
-                            "ID serial primary key,"\
-                            "person_name VARCHAR(20),"\
-                            "rss_id VARCHAR(1000),"\
-                            "grade VARCHAR(200)"\
+        sql_create_tables = "CREATE TABLE public.rss_entries (raw_xml xml," \
+                            "from_url VARCHAR(200),"\
+                            "rss_author VARCHAR(100),"\
+                            "rss_content text,"\
+                            "rss_id VARCHAR(200),"\
+                            "rss_published timestamp with time zone,"\
+                            "rss_publisher VARCHAR(100),"\
+                            "rss_tags VARCHAR(100),"\
+                            "rss_title text,"\
+                            "rss_updated timestamp with time zone,"\
+                            "analized BOOLEAN DEFAULT FALSE,"\
+                            "CONSTRAINT unq_ids UNIQUE (rss_id)"\
                             ");"
         sql_alter_tableds = "ALTER TABLE public.rss_entries OWNER to postgres;"
 
@@ -89,7 +95,7 @@ def create_tables_p():
             print("Соединение с PostgreSQL закрыто")
 
 
-def drop_tables_p():
+def drop_tables():
     try:
         # Подключение к существующей базе данных
         connection = psycopg2.connect(user=db_user_name,
@@ -112,16 +118,75 @@ def drop_tables_p():
             print("Соединение с PostgreSQL закрыто")
 
 
-def write_one_row_in_db_p(person_name, rss_id, grade):
+def write_one_row_in_db(xml_str, from_url_str, author_str,\
+                    content_str, id_str, publisher_str, tags_str, title_str,\
+                    published_str, updated_str):
     global connection, cursor
+    rw = 0
     try:
         sql_insert_xml = "INSERT INTO public.rss_entries ("\
-                            "person_name,"\
+                            "raw_xml,"\
+                            "from_url,"\
+                            "rss_author,"\
+                            "rss_content,"\
                             "rss_id,"\
-                            "grade"\
-                            ") VALUES (%s,%s,%s);"
-        cursor.execute(sql_insert_xml, (person_name, rss_id, grade))
+                            "rss_publisher,"\
+                            "rss_tags,"\
+                            "rss_title,"\
+                            "rss_published,"\
+                            "rss_updated"\
+                            ") VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+        #print(xml_str)
+        cursor.execute(sql_insert_xml, (xml_str, from_url_str, author_str,\
+                    content_str, id_str,\
+                    publisher_str, tags_str, title_str, published_str, updated_str))
         connection.commit()
+        rw = 1
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
         connection.rollback()
+    return rw
+
+
+def write_list_in_db(list_rss):
+    global connection, cursor
+    rw = 0
+    try:
+        sql_insert_xml = "INSERT INTO public.rss_entries ("\
+                            "raw_xml,"\
+                            "from_url,"\
+                            "rss_author,"\
+                            "rss_content,"\
+                            "rss_id,"\
+                            "rss_publisher,"\
+                            "rss_tags,"\
+                            "rss_title,"\
+                            "rss_published,"\
+                            "rss_updated"\
+                            ") VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+        #print(xml_str)
+        cursor.executemany(sql_insert_xml, list_rss)
+        connection.commit()
+        rw = cursor.rowcount
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        connection.rollback()
+        # Если скопом не получилось - Вставляем по 1
+        for en in list_rss:
+            if write_one_row_in_db(en[0], en[1], en[2], en[3], en[4], en[5], en[6], en[7], en[8], en[9]) > 0:
+                rw += 1
+    print(f"Вставлено {rw:d} строк")
+    return rw
+
+def get_last_ten_rss():
+    global connection, cursor
+    try:
+        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url FROM rss_entries ORDER BY rss_published DESC LIMIT 10"
+        cursor.execute(sql_select_10)
+        result = cursor.fetchall()
+        #print(result)
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        connection.rollback()
+
+    return result

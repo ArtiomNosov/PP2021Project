@@ -22,7 +22,7 @@ import ssl
 #import googletrans
 
 #Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
-context = ssl._create_unverified_context()
+#context = ssl._create_unverified_context()
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # Функция убирает теги из HTML
@@ -38,9 +38,9 @@ def remove_html_tags(text):
 #print(hash_object.hexdigest());
 
 # TODO: на этапе продакшена - убрать
-DataBase.create_database()
-DataBase.drop_tables()
-DataBase.create_tables()
+#DataBase.create_database()
+#DataBase.drop_tables()
+#DataBase.create_tables()
 
 
 # Открываем на чтение файл с фидами
