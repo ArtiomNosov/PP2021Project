@@ -31,13 +31,6 @@ def register_grades(person_name, rss_list, grades_list):
 
 rss_list = get_news()
 
-grade_key = types.ReplyKeyboardMarkup(row_width=5)
-button1 = types.KeyboardButton("1")
-button2 = types.KeyboardButton("2")
-button3 = types.KeyboardButton("3")
-button4 = types.KeyboardButton("4")
-button5 = types.KeyboardButton("5")
-grade_key.add(button1, button2, button3, button4, button5)
 
 # Регистрация пользователя по имени, т.е. запись его в глобальную переменную
 @bot.message_handler(commands=['register'])
@@ -52,27 +45,59 @@ def start_message(message):
 @bot.message_handler(commands=['newnews'])
 def next_news(message):
     global rss_list
-    global grades_list
-    global I
-    if I == len(rss_list) - 1:
-        grades_list.append(message.text)
-        bot.send_message(message.chat.id, "На сегодня все!", reply_markup=None)
-        register_grades(person_name, rss_list, grades_list)
-        bot.send_message(message.chat.id, "Ваши оценки статей записаны!")
-        I = 0
-        grades_list = []
-    elif (message.text == "1" or message.text == "2" or message.text == "3" or message.text == "4" or message.text == "5") and I < len(rss_list) - 1:
-        grades_list.append(message.text)
-        I += 1
-        bot.register_next_step_handler(
-            bot.send_message(message.chat.id, rss_list[I][0], reply_markup=grade_key, parse_mode="HTML"), next_news)
-    elif message.text == "/newnews":
-        I = 0
-        bot.register_next_step_handler(
-            bot.send_message(message.chat.id, rss_list[I][0], reply_markup=grade_key, parse_mode="HTML"), next_news)
-    else:
-        bot.register_next_step_handler(bot.send_message(message.chat.id, "Введено некорректное значение!"), next_news)
+    for i in range(len(rss_list)):
+        keyboard = types.InlineKeyboardMarkup()
+        one_k = types.InlineKeyboardButton(text='1', callback_data='1')
+        two_k = types.InlineKeyboardButton(text='2', callback_data='2')
+        three_k = types.InlineKeyboardButton(text='3', callback_data='3')
+        four_k = types.InlineKeyboardButton(text='4', callback_data='4')
+        five_k = types.InlineKeyboardButton(text='5', callback_data='5')
+        keyboard.add(one_k, two_k,three_k)
+        keyboard.add(four_k, five_k)
 
+        bot.send_message(message.chat.id, rss_list[i][0], reply_markup=keyboard, parse_mode="HTML")
+
+
+
+
+
+
+    #bot.send_message(message.chat.id, "На сегодня все!", reply_markup=None)
+    #register_grades(person_name, rss_list, grades_list)
+    #bot.send_message(message.chat.id, "Ваши оценки статей будут записаны!")
+
+@bot.callback_query_handler(func=lambda call: True)
+def query_handler(call):
+    global grades_list
+    global rss_list
+    if (len(grades_list) > 8) and (call.data == "1" or call.data == "2" or call.data == "3" or call.data == "4" or call.data == "5"):
+        grades_list.append(call.data)
+        register_grades(person_name, rss_list, grades_list)
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
+
+        grades_list = []
+    elif call.data == "1" or call.data == "2" or call.data == "3" or call.data == "4" or call.data == "5":
+        grades_list.append(call.data)
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
+
+
+    bot.send_message(call.message.chat.id, "Ваши оценка статьи записана!")
+
+
+
+#@bot.callback_query_handler(func=lambda call: True)
+#def callback_inline(call):
+#    global grades_list
+#    global rss_list
+#    try:
+#        if (len(grades_list) > 9) and (call.data == "1" or call.data == "2" or call.data == "3" or call.data == "4" or call.data == "5"):
+#            grades_list.append(call.text)
+#           register_grades(person_name, rss_list, grades_list)
+#            bot.send_message(call.chat.id, "Все ваши оценки записаны!", reply_markup=None)
+#        elif call.data == "1" or call.data == "2" or call.data == "3" or call.data == "4" or call.data == "5":
+#            grades_list.append(call.text)
+#    except Exception as e:
+#        print(repr(e))
 
 
 bot.polling()
