@@ -178,10 +178,10 @@ def write_list_in_db(list_rss):
     print(f"Вставлено {rw:d} строк")
     return rw
 
-def get_last_ten_rss():
+def get_all_rss():
     global connection, cursor
     try:
-        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url FROM rss_entries ORDER BY rss_published DESC LIMIT 10"
+        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url FROM rss_entries ORDER BY rss_published DESC"
         cursor.execute(sql_select_10)
         result = cursor.fetchall()
         #print(result)
@@ -190,3 +190,13 @@ def get_last_ten_rss():
         connection.rollback()
 
     return result
+
+
+def RSS_feeds():
+    opml_root = ET.parse("companies.opml.xml").getroot()
+    rss_url = ""
+    num = 0
+    for tag in opml_root.findall('.//outline'):
+        num += 1
+        rss_url += f"{num}. {tag.items()[2][1]} \n"
+    return rss_url
