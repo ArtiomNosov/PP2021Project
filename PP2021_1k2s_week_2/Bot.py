@@ -1,8 +1,6 @@
-#UPDATE 0.04
-#Добавлены задержки перед отправлением новостей во имя избежания ошибок из-зи большого количества запросов.
-#Нажатия пользователя на кнопки теперь обрабатывается в одной функции.
-#Убрана команда /nextnews. В место нее теперь универсальная команда /newnews.
-#Добавлена команда /everydayNews. Она является переключателем для функции ежедневного вывода новостей.
+#UPDATE 0.04.1
+#Добавлена команда /help, выводящая все существующие в боте команды
+
 
 
 import DataBase
@@ -18,8 +16,8 @@ person_name = "No_Name"     #Имя гостя
 number_of_artical = 0       #Текущая статья
 page_count = 5              #Кол-во статей за 1 вывод
 page = 0                    #Текущая страница
-everydayNews = False
-
+everydayNews = False        #Ежедневная рассылка новостей
+timeOnOnePost = 60          #Через какое время будут присылаться новости (в секундах)
 
 #Создание списка новостей
 def get_news():
@@ -43,9 +41,23 @@ def register_grades(person_name, rss_list, grade, number_of_artical):
 #Получение статей
 rss_list = get_news()
 
-def everydayNews(everydayNews):
-    rss_list = get_news();
 
+#
+#TODO: допилить приветствие, сделать в нем регистрацию пользователя
+@bot.message_handler(commands=['start'])
+def start_message(message):
+    bot.send_message(message.chat.id, 'Приветсвтуем вас в ....(ну надо же что-нибудь написать)', None)
+
+
+#Команда, выводящая все существующие в боте команды (кроме /start)
+@bot.message_handler(commands=['help'])
+def start_message(message):
+    global page_count
+    bot.send_message(message.chat.id, f'<b>Этот бот имеет следующие команды:</b>\n'\
+                                      f'/list - вывод всех ваших RSS ссылок, на которые вы в данный момент подписаны,\n'\
+                                      f'/register - регистрация пользователя, т.е. бот запоминает ваше имя (необходимо для бд),\n'\
+                                      f'/newnews - выводится последние {page_count} новостей,\n'\
+                                      f'/everydayNews - включение/выключение еедневных новостей (пока что отключена).', parse_mode="HTML")
 
 
 #Выводим лист всех RSS подписок.
@@ -102,17 +114,17 @@ def next_news(message):
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
                 number_of_artical += 1
-            time.sleep(1)
     page += 1
 
 
 @bot.message_handler(commands=['everydayNews'])
-def everydayNews(message):
+def everydayNews_YN(message):
     keyboardYN = types.InlineKeyboardMarkup()
     one_k = types.InlineKeyboardButton(text='Да', callback_data='yes_everydayNews')
     two_k = types.InlineKeyboardButton(text='Нет', callback_data='no_everydayNews')
     keyboardYN.add(one_k, two_k)
     bot.send_message(message.chat.id, "Вы хотите каждый день получать рассылку новостей?", reply_markup=keyboardYN)
+
 
 
 #Получаем ответ пользователя, т.е. обработка всех ответов кнопочек и всего подобного
@@ -137,4 +149,4 @@ def query_handler(call):
         bot.send_message(call.message.chat.id, 'Ежедневные новости отключены!')
 
 
-bot.polling()
+bot.polling(none_stop=True, interval=1)
