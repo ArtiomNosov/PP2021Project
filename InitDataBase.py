@@ -1,3 +1,10 @@
+######################################################################################
+# InitDataBase.py - В данном модуле набор функций для создания пустой базы дынных
+# (стартовое решение)
+# Author Artiom Nosov <artiom-nj@mail.ru>
+# version: 0.0.01
+######################################################################################
+
 import DataBase
 
 import psycopg2
@@ -39,13 +46,13 @@ def create_database():
 def create_tables():
     try:
         # Подключение к существующей базе данных
-        connection = psycopg2.connect(user=DataBase.db_user_name,
+        DataBase.connection = psycopg2.connect(user=DataBase.db_user_name,
                                       password=DataBase.db_password,
                                       host=DataBase.db_host_name,
                                       port=DataBase.db_port_number,
                                       database=DataBase.db_name)
         # Курсор для выполнения операций с базой данных
-        cursor = connection.cursor()
+        DataBase.cursor = DataBase.connection.cursor()
         # SQL запрос для создания таблицы
         sql_create_tables = "CREATE TABLE public.news_entries (" \
                             "ID serial primary key," \
@@ -67,15 +74,15 @@ def create_tables():
         sql_alter_tableds = "ALTER TABLE public.rss_entries OWNER to {!s};".format(DataBase.db_user_name)
 
         # Выполняем sql запросы на создание таблицы
-        cursor.execute(sql_create_tables)
+        DataBase.cursor.execute(sql_create_tables)
         # Выполняем sql запрос на изменение таблицы на изменение пользователя
-        cursor.execute(sql_alter_tableds)
+        DataBase.cursor.execute(sql_alter_tableds)
 
         #Создаём таблицу пользователей
         sql_create_tables = "CREATE TABLE public.censors (" \
-                            "ID serial primary key," \
+                            "ID_censors serial primary key," \
                             "person_name VARCHAR(20)," \
-                            "email VARCHAR(100)" \
+                            "email VARCHAR(100)," \
                             "everydayNews BOOLEAN DEFAULT FALSE" \
                             ");"
 
@@ -83,35 +90,39 @@ def create_tables():
         sql_alter_tableds = "ALTER TABLE public.censors OWNER to {!s};".format(DataBase.db_user_name)
 
         # Выполняем sql запросы на создание таблицы
-        cursor.execute(sql_create_tables)
+        DataBase.cursor.execute(sql_create_tables)
+        DataBase.connection.commit()
         # Выполняем sql запрос на изменение таблицы на изменение пользователя
-        cursor.execute(sql_alter_tableds)
+        DataBase.cursor.execute(sql_alter_tableds)
+        DataBase.connection.commit()
+
 
         # Создаём таблицу оценки
-        sql_create_tables = "CREATE TABLE public.scores (" \
-                            "FOREIGN KEY (ID_censors) REFERENCES censors (ID)" \
-                            "FOREIGN KEY (ID_news_entries) REFERENCES news_entries (ID)," \
+        sql_create_tables = "CREATE TABLE public.scores ("\
+                            "id_censors integer REFERENCES public.censors (id_censors)," \
+                            "id_news integer REFERENCES public.news_entries (id_news)," \
                             "score NUMERIC," \
+							"PRIMARY KEY (id_censors, id_news)" \
                             ");"
 
         # sql запрос для привязки к другому пользователю по умолчанию таблица привязана непонятно к кому
         sql_alter_tableds = "ALTER TABLE public.censors OWNER to {!s};".format(DataBase.db_user_name)
 
         # Выполняем sql запросы на создание таблицы
-        cursor.execute(sql_create_tables)
+        DataBase.cursor.execute(sql_create_tables)
         # Выполняем sql запрос на изменение таблицы на изменение пользователя
-        cursor.execute(sql_alter_tableds)
+        DataBase.cursor.execute(sql_alter_tableds)
 
 
         # коммитим
-        connection.commit()
+        DataBase.connection.commit()
 
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
     finally:
-        if connection:
-            cursor.close()
-            connection.close()
+        if DataBase.connection:
+            DataBase.cursor.close()
+            DataBase.connection.close()
             print("Соединение с PostgreSQL закрыто")
 
 def drop_tables():
@@ -123,9 +134,22 @@ def drop_tables():
                                       host=DataBase.db_host_name,
                                       port=DataBase.db_port_number)
         connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+
         # Курсор для выполнения операций с базой данных
         cursor = connection.cursor()
-        sql_drop_tables = 'drop table rss_entries;'
+
+        # Удаляем scores
+        sql_drop_tables = 'drop table scores;'
+        cursor.execute(sql_drop_tables)
+        connection.commit()
+
+        #Удаляем таблицу news_entries
+        sql_drop_tables = 'drop table news_entries;'
+        cursor.execute(sql_drop_tables)
+        connection.commit()
+
+        #Удаляем censors
+        sql_drop_tables = 'drop table censors;'
         cursor.execute(sql_drop_tables)
         connection.commit()
     except (Exception, Error) as error:

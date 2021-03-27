@@ -5,7 +5,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 # Настройки подключения
 db_name = "rss_db"
 db_password = "010112"
-db_user_name = "Artiom"
+db_user_name = "artiom"
 db_host_name = "127.0.0.1"
 db_port_number ="5432"
 
