@@ -1,15 +1,19 @@
 #UPDATE 0.04.1
 #Добавлена команда /help, выводящая все существующие в боте команды
-
-
-
-import DataBase
-import PesronList
+#Импорты сторонних модулей
+import ssl
 import telebot
 from telebot import types
 from psycopg2 import Error
 import threading
 import time
+
+#Импорт наших модулей
+import DataBase
+import RSS_Utils #Добавляем наши утилиты связанные с RSS
+import Mail_Utils #Добавляем наши утилиты для парсинга и сбора почты
+import Analize_Utils #Добавляем наши утилиты анализа данных
+
 
 bot = telebot.TeleBot('1631242798:AAEBKc1x16vZpEO3QkzAecK5HEM8jE2v510')
 person_name = "No_Name"     #Имя гостя
@@ -31,12 +35,15 @@ def get_news():
         rss_list.append([f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}", row[0]])
     return rss_list
 
+#Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
+#context = ssl._create_unverified_context()
+ssl._create_default_https_context = ssl._create_unverified_context
 
 #Регистрация оценкок пользователя
 def register_grades(person_name, rss_list, grade, number_of_artical):
-    PesronList.open_db_connection_p()
-    PesronList.write_one_row_in_db_p(person_name, rss_list[number_of_artical][1], grade)
-    PesronList.close_db_connection_p()
+    DataBase.open_db_connection()
+    DataBase.write_one_row_in_censors(person_name, rss_list[number_of_artical][1], grade)
+    DataBase.close_db_connection()
 
 #Получение статей
 rss_list = get_news()
@@ -64,7 +71,7 @@ def start_message(message):
 #TODO: сделать возможность удалять или дополнять этот лист RSS подписками по вводу 1й RSS ссылки
 @bot.message_handler(commands=['list'])
 def start_message(message):
-    bot.send_message(message.chat.id, DataBase.RSS_feeds(), None)
+    bot.send_message(message.chat.id, RSS_Utils.RSS_feeds(), None)
 
 
 # Регистрация пользователя по имени, т.е. запись его в глобальную переменную

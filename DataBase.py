@@ -2,26 +2,32 @@ import psycopg2
 from psycopg2 import Error
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-
 # Настройки подключения
 db_name = "rss_db"
 db_password = "010112"
-db_user_name = "postgres"
+db_user_name = "Artiom"
 db_host_name = "127.0.0.1"
 db_port_number ="5432"
 
-
+#Объект соединения с базой данных
 connection = None
+#Курсор в SQL – это область в памяти базы данных, которая предназначена для хранения последнего оператора SQL.
+# Если текущий оператор – запрос к базе данных, в памяти сохраняется и строка данных запроса,
+# называемая текущим значением, или текущей строкой курсора.
 cursor = None
 
+#Открывает соединение с базой данных
 def open_db_connection():
+    #Определяем глобальные для функции
     global connection, cursor
     try:
+        # Подключение пользователя с правами к существующей базе данных
         connection = psycopg2.connect(user=db_user_name,\
                                       password=db_password,\
                                       host=db_host_name,\
                                       port=db_port_number,\
                                       database=db_name)
+        #создаём область памяти для работы с БД
         cursor = connection.cursor()
         print("Открыто соединение с PostgreSQL")
     except (Exception, Error) as error:
@@ -33,89 +39,6 @@ def close_db_connection():
         cursor.close()
         connection.close()
         print("Соединение с PostgreSQL закрыто")
-
-
-def create_database():
-    try:
-        # Подключение к существующей базе данных
-        connection = psycopg2.connect(user=db_user_name,
-                                      password=db_password,
-                                      host=db_host_name,
-                                      port=db_port_number)
-        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        # Курсор для выполнения операций с базой данных
-        cursor = connection.cursor()
-        sql_create_database = "CREATE DATABASE {!s} WITH OWNER = {!s}  ENCODING = 'UTF8' CONNECTION LIMIT = -1".format(db_name, db_user_name)
-        print(sql_create_database)
-        cursor.execute(sql_create_database)
-    except (Exception, Error) as error:
-        print("Ошибка при работе с PostgreSQL", error)
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
-
-def create_tables():
-    try:
-        # Подключение к существующей базе данных
-        connection = psycopg2.connect(user=db_user_name,
-                                      password=db_password,
-                                      host=db_host_name,
-                                      port=db_port_number,
-                                      database=db_name)
-        # Курсор для выполнения операций с базой данных
-        cursor = connection.cursor()
-        # SQL для создания таблицы
-        sql_create_tables = "CREATE TABLE public.rss_entries (raw_xml xml," \
-                            "from_url VARCHAR(200),"\
-                            "rss_author VARCHAR(100),"\
-                            "rss_content text,"\
-                            "rss_id VARCHAR(200),"\
-                            "rss_published timestamp with time zone,"\
-                            "rss_publisher VARCHAR(100),"\
-                            "rss_tags VARCHAR(100),"\
-                            "rss_title text,"\
-                            "rss_updated timestamp with time zone,"\
-                            "analized BOOLEAN DEFAULT FALSE,"\
-                            "CONSTRAINT unq_ids UNIQUE (rss_id)"\
-                            ");"
-        sql_alter_tableds = "ALTER TABLE public.rss_entries OWNER to postgres;"
-
-        cursor.execute(sql_create_tables)
-        cursor.execute(sql_alter_tableds)
-        connection.commit()
-
-    except (Exception, Error) as error:
-        print("Ошибка при работе с PostgreSQL", error)
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
-
-
-def drop_tables():
-    try:
-        # Подключение к существующей базе данных
-        connection = psycopg2.connect(user=db_user_name,
-                                      password=db_password,
-                                      database=db_name,
-                                      host=db_host_name,
-                                      port=db_port_number)
-        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        # Курсор для выполнения операций с базой данных
-        cursor = connection.cursor()
-        sql_drop_tables = 'drop table rss_entries;'
-        cursor.execute(sql_drop_tables)
-        connection.commit()
-    except (Exception, Error) as error:
-        print("Ошибка при работе с PostgreSQL", error)
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Соединение с PostgreSQL закрыто")
 
 
 def write_one_row_in_db(xml_str, from_url_str, author_str,\
@@ -152,6 +75,7 @@ def write_list_in_db(list_rss):
     global connection, cursor
     rw = 0
     try:
+        #формируем строку
         sql_insert_xml = "INSERT INTO public.rss_entries ("\
                             "raw_xml,"\
                             "from_url,"\
@@ -167,6 +91,7 @@ def write_list_in_db(list_rss):
         #print(xml_str)
         cursor.executemany(sql_insert_xml, list_rss)
         connection.commit()
+        # В rw пишем сколько реально строк мы записали
         rw = cursor.rowcount
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
@@ -191,12 +116,19 @@ def get_all_rss():
 
     return result
 
+def write_one_row_in_censors(person_name, rss_id, grade):
+    global connection, cursor
+    try:
+        sql_insert_xml = "INSERT INTO public.censors ("\
+                            "person_name,"\
+                            "rss_id,"\
+                            "grade"\
+                            ") VALUES (%s,%s,%s);"
+        cursor.execute(sql_insert_xml, (person_name, rss_id, grade))
+        connection.commit()
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        connection.rollback()
 
-def RSS_feeds():
-    opml_root = ET.parse("companies.opml.xml").getroot()
-    rss_url = ""
-    num = 0
-    for tag in opml_root.findall('.//outline'):
-        num += 1
-        rss_url += f"{num}. {tag.items()[2][1]} \n"
-    return rss_url
+
+

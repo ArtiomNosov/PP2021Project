@@ -11,8 +11,8 @@
 # bot.polling()
 
 #import hashlib
-import DataBase
-import xmltodict
+import DataBase   #Библиотека для работы с базой данных. В нашем случае мы пользуемся PostgreSQL.
+import xmltodict  #Используем один раз, чтобы вернуть
 import xml
 import xml.etree.ElementTree as ET
 import feedparser
