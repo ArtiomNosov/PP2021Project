@@ -83,7 +83,8 @@ def create_tables():
                             "ID_censors serial primary key," \
                             "person_name VARCHAR(20)," \
                             "email VARCHAR(100)," \
-                            "everydayNews BOOLEAN DEFAULT FALSE" \
+                            "everydayNews BOOLEAN DEFAULT FALSE," \
+                            "CONSTRAINT unq_person_name UNIQUE (person_name)" \
                             ");"
 
         # sql запрос для привязки к другому пользователю по умолчанию таблица привязана непонятно к кому
@@ -159,3 +160,7 @@ def drop_tables():
             cursor.close()
             connection.close()
             print("Соединение с PostgreSQL закрыто")
+
+
+drop_tables()
+create_tables()

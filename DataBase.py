@@ -118,16 +118,17 @@ def get_all_rss():
     return result
 
 # Функция добавляющая одного пользователя в базу данных
-def inser_one_person(person_name):
+def insert_one_person(person_name):
     try:
 
         sql_insert_one_person = "INSERT INTO public.censors ("\
                             "person_name"\
                             ") VALUES (%s);"
         #
-        cursor.execute(sql_insert_one_person, (person_name))
+        cursor.execute(sql_insert_one_person, (person_name,))
         connection.commit()
     except (Exception, Error) as error:
+        print("Пользователь {!s} не добавлен".format(person_name))
         print("Ошибка при работе с PostgreSQL", error)
         connection.rollback()
 
