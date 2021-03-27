@@ -55,7 +55,7 @@ def create_tables():
         DataBase.cursor = DataBase.connection.cursor()
         # SQL запрос для создания таблицы
         sql_create_tables = "CREATE TABLE public.news_entries (" \
-                            "ID serial primary key," \
+                            "id_news serial primary key," \
                             "raw_xml xml," \
                             "from_url VARCHAR(200)," \
                             "rss_author VARCHAR(100)," \
@@ -71,7 +71,7 @@ def create_tables():
                             ");"  # Задаём ограничение на CONSTRATE на требование уникальности rss_id
 
         # sql запрос для привязки к другому пользователю по умолчанию таблица привязана непонятно к кому
-        sql_alter_tableds = "ALTER TABLE public.rss_entries OWNER to {!s};".format(DataBase.db_user_name)
+        sql_alter_tableds = "ALTER TABLE public.news_entries OWNER to {!s};".format(DataBase.db_user_name)
 
         # Выполняем sql запросы на создание таблицы
         DataBase.cursor.execute(sql_create_tables)
