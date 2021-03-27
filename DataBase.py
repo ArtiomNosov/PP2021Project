@@ -3,6 +3,7 @@ from psycopg2 import Error
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Настройки подключения
+# TODO: сделать сохранение настроек в файле Properties.json или в переменных среды окружения windows
 db_name = "rss_db"
 db_password = "010112"
 db_user_name = "artiom"
@@ -47,7 +48,7 @@ def write_one_row_in_db(xml_str, from_url_str, author_str,\
     global connection, cursor
     rw = 0
     try:
-        sql_insert_xml = "INSERT INTO public.rss_entries ("\
+        sql_insert_xml = "INSERT INTO public.news_entries ("\
                             "raw_xml,"\
                             "from_url,"\
                             "rss_author,"\
@@ -76,7 +77,7 @@ def write_list_in_db(list_rss):
     rw = 0
     try:
         #формируем строку
-        sql_insert_xml = "INSERT INTO public.rss_entries ("\
+        sql_insert_xml = "INSERT INTO public.news_entries ("\
                             "raw_xml,"\
                             "from_url,"\
                             "rss_author,"\
@@ -106,7 +107,7 @@ def write_list_in_db(list_rss):
 def get_all_rss():
     global connection, cursor
     try:
-        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url FROM rss_entries ORDER BY rss_published DESC"
+        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url FROM public.news_entries ORDER BY rss_published DESC"
         cursor.execute(sql_select_10)
         result = cursor.fetchall()
         #print(result)
@@ -116,9 +117,32 @@ def get_all_rss():
 
     return result
 
+# Функция добавляющая одного пользователя в базу данных
+def inser_one_person(person_name):
+    try:
+
+        sql_insert_one_person = "INSERT INTO public.censors ("\
+                            "person_name"\
+                            ") VALUES (%s);"
+        #
+        cursor.execute(sql_insert_one_person, (person_name))
+        connection.commit()
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        connection.rollback()
+
 def write_one_row_in_censors(person_name, rss_id, grade):
     global connection, cursor
+
+    # Получили id пользователя для проверки его существования
     try:
+        sql_get_person_name = "SELECT id_censors FROM censors WHERE person_name = '{!s}';".format(person_name)
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+
+    try:
+        #INSERT INTO scores(score, id_censors, id_news) VALUES (5, (SELECT id_censors FROM censors WHERE person_name = 'John Hodk'), (SELECT id_news FROM news_entries WHERE
+        #rss_id = '123'));
         sql_insert_xml = "INSERT INTO public.censors ("\
                             "person_name,"\
                             "rss_id,"\

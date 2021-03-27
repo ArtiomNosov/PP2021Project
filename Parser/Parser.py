@@ -122,6 +122,6 @@ for tag in opml_root.findall('.//outline'):
       DataBase.write_list_in_db(list_rss)
       print("===============")
 
-# Закрываем базу данных1
+# Закрываем базу данных
 DataBase.close_db_connection()
 
