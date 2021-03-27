@@ -20,6 +20,8 @@ import xml.etree.ElementTree as ET
 import feedparser
 import re
 import ssl
+import datetime
+from time import time
 
 #import googletrans
 
@@ -35,15 +37,10 @@ def remove_html_tags(text):
    clean_text = re.sub(cleaner_expression, '', text)
    return clean_text
 
-# TODO: хеширование записей XML для исключения дублирования
-#hash_object = hashlib.md5(b'Test String')
-#print(hash_object.hexdigest());
-
-# TODO: на этапе продакшена - убрать
-#DataBase.create_database()
-#DataBase.drop_tables()
-#DataBase.create_tables()
-
+# печатаем текущую дату и время запуска
+print("Сканирование RSS запущено: " + datetime.datetime.now().strftime("%d-%m-%Y %H:%M"))
+# засекаем таймер выполнения
+t0 = time()
 
 # Открываем на чтение файл с фидами
 try:
@@ -126,10 +123,15 @@ for tag in opml_root.findall('.//outline'):
                        e.title, \
                        published_str, \
                        updated_str,))
-         # Записываем строки в базу
-         DataBase.write_list_in_db(list_rss)
-         print("===============")
+      # Записываем строки в базу
+      DataBase.write_list_in_db(list_rss)
+      print("===============")
 
 # Закрываем базу данных
 DataBase.close_db_connection()
+# печатаем текущую дату и время остановки
+print("Сканирование RSS завершено: " + datetime.datetime.now().strftime("%d-%m-%Y %H:%M"))
+# засекаем таймер выполнения
+t1 = time()
+print(f" На сканирование потрачено = {t1-t0:7.4f} секунд")
 

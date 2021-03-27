@@ -62,8 +62,8 @@ def create_tables():
                             "rss_content text," \
                             "rss_id VARCHAR(200)," \
                             "rss_published timestamp with time zone," \
-                            "rss_publisher VARCHAR(100)," \
-                            "rss_tags VARCHAR(100)," \
+                            "rss_publisher VARCHAR(200)," \
+                            "rss_tags VARCHAR(200)," \
                             "rss_title text," \
                             "rss_updated timestamp with time zone," \
                             "analized BOOLEAN DEFAULT FALSE," \
