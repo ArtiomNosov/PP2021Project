@@ -11,6 +11,8 @@
 # bot.polling()
 
 #import hashlib
+import sys
+
 import DataBase   #Библиотека для работы с базой данных. В нашем случае мы пользуемся PostgreSQL.
 import xmltodict  #Используем один раз, чтобы вернуть
 import xml
@@ -44,9 +46,15 @@ def remove_html_tags(text):
 
 
 # Открываем на чтение файл с фидами
-opml_root = ET.parse('companies.opml.xml').getroot()
+try:
+   opml_root = ET.parse('companies.opml.xml').getroot()
+except:
+   print("Ошибка открытия файла OMPL")
+   sys.exit(2)
+
 print(opml_root)
 rss_count = 0
+
 
 # Переводчик
 #translator = googletrans.Translator()
@@ -108,7 +116,7 @@ for tag in opml_root.findall('.//outline'):
 
          # Добавляем в list новую строку
 
-      list_rss.append((xmltodict.unparse(e, full_document=False), \
+         list_rss.append((xmltodict.unparse(e, full_document=False), \
                        rss_url, \
                        author_str, \
                        remove_html_tags(content_str), \
@@ -118,9 +126,9 @@ for tag in opml_root.findall('.//outline'):
                        e.title, \
                        published_str, \
                        updated_str,))
-      # Записываем строки в базу
-      DataBase.write_list_in_db(list_rss)
-      print("===============")
+         # Записываем строки в базу
+         DataBase.write_list_in_db(list_rss)
+         print("===============")
 
 # Закрываем базу данных
 DataBase.close_db_connection()
