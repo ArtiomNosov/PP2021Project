@@ -1,16 +1,3 @@
-# import telebot
-# bot = telebot.TeleBot('1599675846:AAG5m5KrY26-5z5XW8KhMfGkU45Nn-7XMBI')
-#
-# @bot.message_handler(content_types=['text'])
-# def send_text(message):
-#     if message.text.lower() == 'привет':
-#         bot.send_message(message.chat.id, 'Привет, мой создатель')
-#     elif message.text.lower() == 'пока':
-#         bot.send_message(message.chat.id, 'Прощай, создатель')
-#
-# bot.polling()
-
-#import hashlib
 import sys
 
 import DataBase   #Библиотека для работы с базой данных. В нашем случае мы пользуемся PostgreSQL.

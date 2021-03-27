@@ -1,0 +1,1 @@
+python -m Parser.Parser.py >> Parser.log
