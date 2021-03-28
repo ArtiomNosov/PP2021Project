@@ -25,7 +25,7 @@ def Analize():
 
     t0 = time()
     DataBase.open_db_connection()
-    df = pd.read_sql_query('SELECT * FROM rss_entries', DataBase.connection)
+    df = pd.read_sql_query('SELECT * FROM news_', DataBase.connection)
     t1 = time()
 
     print(f" time= {t1-t0:7.4f} seconds")

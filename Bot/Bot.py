@@ -42,7 +42,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 #Регистрация оценкок пользователя
 def register_grades(person_name, rss_list, grade, number_of_artical):
     DataBase.open_db_connection()
-    DataBase.write_one_row_in_censors(person_name, rss_list[number_of_artical][1], grade)
+    DataBase.write_one_row_in_censors(person_name, rss_list[number_of_artical][1], int(grade))
     DataBase.close_db_connection()
 
 #Получение статей

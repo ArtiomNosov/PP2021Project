@@ -119,6 +119,7 @@ def get_all_rss():
 
 # Функция добавляющая одного пользователя в базу данных
 def insert_one_person(person_name):
+    resuilt = 0
     try:
 
         sql_insert_one_person = "INSERT INTO public.censors ("\
@@ -127,29 +128,48 @@ def insert_one_person(person_name):
         #
         cursor.execute(sql_insert_one_person, (person_name,))
         connection.commit()
+        resuilt = 1
     except (Exception, Error) as error:
-        print("Пользователь {!s} не добавлен".format(person_name))
-        print("Ошибка при работе с PostgreSQL", error)
+        #print("Пользователь {!s} не добавлен".format(person_name))
+        #print("Ошибка при работе с PostgreSQL", error)
         connection.rollback()
+
+    return resuilt
 
 def write_one_row_in_censors(person_name, rss_id, grade):
     global connection, cursor
-
-    # Получили id пользователя для проверки его существования
+    internal_id_censor = 0
+    internal_id_news = 0
+    # TODO: Нужно переделать - тупо пробуем добавить пользователя, если он уже есть то не добавится, если нет
+    # - точно будет!
+    insert_one_person(person_name)
+    # Получим id пользователя
     try:
         sql_get_person_name = "SELECT id_censors FROM censors WHERE person_name = '{!s}';".format(person_name)
+        cursor.execute(sql_get_person_name)
+        result = cursor.fetchall()
+        internal_id_censor = result[0]
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
 
+    # Получим id новости по rss_id
+    try:
+        sql_get_news_id = "SELECT id_news FROM news_entries WHERE rss_id = '{!s}';".format(rss_id)
+        cursor.execute(sql_get_news_id)
+        result = cursor.fetchall()
+        internal_id_news = result[0]
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+    #
     try:
         #INSERT INTO scores(score, id_censors, id_news) VALUES (5, (SELECT id_censors FROM censors WHERE person_name = 'John Hodk'), (SELECT id_news FROM news_entries WHERE
         #rss_id = '123'));
-        sql_insert_xml = "INSERT INTO public.censors ("\
-                            "person_name,"\
-                            "rss_id,"\
-                            "grade"\
+        sql_insert_xml = "INSERT INTO public.scores ("\
+                            "id_censors,"\
+                            "id_news,"\
+                            "score"\
                             ") VALUES (%s,%s,%s);"
-        cursor.execute(sql_insert_xml, (person_name, rss_id, grade))
+        cursor.execute(sql_insert_xml, (internal_id_censor, internal_id_news, grade))
         connection.commit()
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
