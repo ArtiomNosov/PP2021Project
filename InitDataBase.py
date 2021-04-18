@@ -100,8 +100,8 @@ def create_tables():
 
         # Создаём таблицу оценки
         sql_create_tables = "CREATE TABLE public.scores ("\
-                            "id_censors integer REFERENCES public.censors (id_censors)," \
-                            "id_news integer REFERENCES public.news_entries (id_news)," \
+                            "id_censors integer REFERENCES public.censors (id_censors) ON DELETE CASCADE," \
+                            "id_news integer REFERENCES public.news_entries (id_news) ON DELETE CASCADE," \
                             "score NUMERIC," \
 							"PRIMARY KEY (id_censors, id_news)" \
                             ");"
@@ -116,8 +116,8 @@ def create_tables():
 
         # Создаём таблицу предсказанных моделью оценок
         sql_create_tables = "CREATE TABLE public.predict_scores (" \
-                            "id_censors integer REFERENCES public.censors (id_censors)," \
-                            "id_news integer REFERENCES public.news_entries (id_news)," \
+                            "id_censors integer REFERENCES public.censors (id_censors) ON DELETE CASCADE," \
+                            "id_news integer REFERENCES public.news_entries (id_news) ON DELETE CASCADE," \
                             "predict_score NUMERIC," \
                             "PRIMARY KEY (id_censors, id_news)" \
                             ");"

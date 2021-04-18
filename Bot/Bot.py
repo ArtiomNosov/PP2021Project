@@ -82,9 +82,12 @@ def start_message(message):
 #TODO: фигня какая-то. Вообще переделать и сделать автоматическим.
 @bot.message_handler(commands=['register'])
 def start_message(message):
-    bot.send_message(message.chat.id, "Регистрация пользователя завершена!", None)
     global person_name
     person_name = message.from_user.id
+    DataBase.open_db_connection()
+    DataBase.insert_one_person(person_name)
+    DataBase.close_db_connection()
+    bot.send_message(message.chat.id, "Регистрация пользователя завершена!", None)
 
 
 #Вывод следующих page_count статей
