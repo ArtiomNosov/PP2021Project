@@ -107,12 +107,29 @@ def create_tables():
                             ");"
 
         # sql запрос для привязки к другому пользователю по умолчанию таблица привязана непонятно к кому
-        sql_alter_tableds = "ALTER TABLE public.censors OWNER to {!s};".format(DataBase.db_user_name)
+        sql_alter_tableds = "ALTER TABLE public.scores OWNER to {!s};".format(DataBase.db_user_name)
 
         # Выполняем sql запросы на создание таблицы
         DataBase.cursor.execute(sql_create_tables)
         # Выполняем sql запрос на изменение таблицы на изменение пользователя
         DataBase.cursor.execute(sql_alter_tableds)
+
+        # Создаём таблицу предсказанных моделью оценок
+        sql_create_tables = "CREATE TABLE public.predict_scores (" \
+                            "id_censors integer REFERENCES public.censors (id_censors)," \
+                            "id_news integer REFERENCES public.news_entries (id_news)," \
+                            "predict_score NUMERIC," \
+                            "PRIMARY KEY (id_censors, id_news)" \
+                            ");"
+
+        # sql запрос для привязки к другому пользователю по умолчанию таблица привязана непонятно к кому
+        sql_alter_tableds = "ALTER TABLE public.predict_scores OWNER to {!s};".format(DataBase.db_user_name)
+
+        # Выполняем sql запросы на создание таблицы
+        DataBase.cursor.execute(sql_create_tables)
+        # Выполняем sql запрос на изменение таблицы на изменение пользователя
+        DataBase.cursor.execute(sql_alter_tableds)
+
 
 
         # коммитим
