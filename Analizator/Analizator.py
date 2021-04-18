@@ -1,21 +1,30 @@
-import threading
+import time
+
+# Импорты наших модулей
+import DataBase
+import Analize_Utils
 
 # Константы
-analysisFrequency = 15 # Раз в день 8640000000
-counter = 0
+analysisFrequency = 5 # Раз в день 8640000000
+
+# Timer
+
 
 # Функция запускающая таймер
 def analize_grades():
-    global counter
-    # timer = threading.Timer(interval, function,
-    #                            args=None, kwargs=None)
-    # Параметры:
-    # interval - интервал запуска вызываемого объекта (функции),
-    # function - вызываемый объект (функция),
-    # args=None - позиционные аргументы function,
-    # kwargs=None - ключевые аргументы function.
-    counter = counter + 1
-    print(counter)
+    DataBase.open_db_connection()
 
-#timer = threading.Timer(analysisFrequency, analize_gradesv)
-analize_grades()
+    sql_request_str = 'SELECT id_censors, person_name, email, everyday_news FROM censors'
+
+    DataBase.cursor.execute(sql_request_str)
+    result = DataBase.cursor.fetchall()
+    DataBase.close_db_connection()
+
+    for eterator in result:
+        print(eterator[0])
+        Analize_Utils.Analize(eterator[0])
+
+
+while(True):
+   time.sleep(analysisFrequency)
+   analize_grades()

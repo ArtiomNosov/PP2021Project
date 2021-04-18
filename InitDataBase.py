@@ -83,7 +83,7 @@ def create_tables():
                             "ID_censors serial primary key," \
                             "person_name VARCHAR(20)," \
                             "email VARCHAR(100)," \
-                            "everydayNews BOOLEAN DEFAULT FALSE," \
+                            "everyday_news BOOLEAN DEFAULT FALSE," \
                             "CONSTRAINT unq_person_name UNIQUE (person_name)" \
                             ");"
 
@@ -179,5 +179,35 @@ def drop_tables():
             print("Соединение с PostgreSQL закрыто")
 
 
-drop_tables()
-create_tables()
+# drop_tables()
+# create_tables()
+
+# # Подключение к существующей базе данных
+# DataBase.connection = psycopg2.connect(user=DataBase.db_user_name,
+#                                        password=DataBase.db_password,
+#                                        host=DataBase.db_host_name,
+#                                        port=DataBase.db_port_number,
+#                                        database=DataBase.db_name)
+# # Курсор для выполнения операций с базой данных
+# DataBase.cursor = DataBase.connection.cursor()
+#
+# # Создаём таблицу оценки
+# sql_create_tables = "CREATE TABLE public.scores ("\
+#                     "id_censors integer REFERENCES public.censors (id_censors)," \
+#                     "id_news integer REFERENCES public.news_entries (id_news)," \
+#                     "score NUMERIC," \
+#                     "PRIMARY KEY (id_censors, id_news)" \
+#                     ");"
+#
+# # sql запрос для привязки к другому пользователю по умолчанию таблица привязана непонятно к кому
+# sql_alter_tableds = "ALTER TABLE public.scores OWNER to {!s};".format(DataBase.db_user_name)
+#
+# # Выполняем sql запросы на создание таблицы
+# DataBase.cursor.execute(sql_create_tables)
+# # Выполняем sql запрос на изменение таблицы на изменение пользователя
+# DataBase.cursor.execute(sql_alter_tableds)
+#
+# # коммитим
+# DataBase.connection.commit()
+#
+# DataBase.connection.close()
