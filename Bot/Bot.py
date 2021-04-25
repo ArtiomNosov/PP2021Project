@@ -5,7 +5,6 @@ import ssl
 import telebot
 from telebot import types
 from psycopg2 import Error
-import threading
 import time
 
 
