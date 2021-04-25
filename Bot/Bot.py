@@ -1,5 +1,6 @@
 #UPDATE 0.04.1
 #Добавлена команда /help, выводящая все существующие в боте команды
+
 #Импорты сторонних модулей
 import ssl
 import telebot
@@ -7,22 +8,21 @@ from telebot import types
 from psycopg2 import Error
 import time
 
-
 #Импорт наших модулей
 import DataBase
 import RSS_Utils #Добавляем наши утилиты связанные с RSS
 import Mail_Utils #Добавляем наши утилиты для парсинга и сбора почты
 import Analize_Utils #Добавляем наши утилиты анализа данных
 
+# TODO: Убрать токен из текста программы
+bot = telebot.TeleBot('1631242798:AAEBKc1x16vZpEO3QkzAecK5HEM8jE2v510') # Токен telegram его бы лучше здесь не хранить.
+person_name = "No_Name"     # Имя гостя (по умолчанию No_Name)
+page_count = 5              # Кол-во статей за 1 вывод
+page = 0                    # Текущая страница
+everydayNews = False        # Ежедневная рассылка новостей
+timeOnOnePost = 60          # Через какое время будут присылаться новости (в секундах)
 
-bot = telebot.TeleBot('1631242798:AAEBKc1x16vZpEO3QkzAecK5HEM8jE2v510')
-person_name = "No_Name"     #Имя гостя (по умолчанию No_Name)
-page_count = 5              #Кол-во статей за 1 вывод
-page = 0                    #Текущая страница
-everydayNews = False        #Ежедневная рассылка новостей
-timeOnOnePost = 60          #Через какое время будут присылаться новости (в секундах)
-
-#Создание списка новостей
+# Создание списка новостей
 def get_news():
     rss_list = []
     DataBase.open_db_connection()
@@ -35,8 +35,7 @@ def get_news():
     return rss_list
 
 
-#Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
-#context = ssl._create_unverified_context()
+# Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
