@@ -84,14 +84,14 @@ def Analize(id_censor):
 				  ' WHERE scores.score is NULL LIMIT 40'
     dfPredict = pd.read_sql_query(str_noname, DataBase.connection)
 
-    # dfPredict = PreparationForAnalize(dfPredict)
+    dfPredict = PreparationForAnalize(dfPredict)
 
     DataBase.close_db_connection()
     t1 = time()
 
     print(f" time= {t1 - t0:7.4f} seconds")
 
-    #Подумать над условиями выхода
+    # TODO: Подумать над условиями выхода
     if dfTrain.size < 1:
         return
     if dfPredict.size < 1:
@@ -107,13 +107,17 @@ def Analize(id_censor):
     lenTrain = dfTrain.size
     #dfTrain.append(dfPredict)
 
+    # Перемешиване набора для обучения и тренировки
     Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(dfTrain['text_final'], dfTrain['score'],
                                                                      test_size=0.3)
 
     # Step 2
+    # Делаем из набора слов набор категорий
     Encoder = LabelEncoder()
     Train_Y = Encoder.fit_transform(Train_Y)
     Test_Y = Encoder.fit_transform(Test_Y)
+    print(Train_Y)
+    print(Test_Y)
 
     # Step 3
     Tfidf_vect = TfidfVectorizer(max_features=5000)

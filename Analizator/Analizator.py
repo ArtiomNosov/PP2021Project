@@ -5,7 +5,7 @@ import DataBase
 import Analize_Utils
 
 # Константы
-analysisFrequency = 5 # Раз в день 8640000000
+analysisFrequency = 5  # Раз в день 8640000000
 
 # Timer
 
