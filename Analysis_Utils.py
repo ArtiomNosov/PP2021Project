@@ -25,7 +25,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 import pandas as pd
 
-def function_return_random_grade(arg, str):
+def function_return_random_grade(str):
     print(str)
     return randint(1, 5)
 
@@ -69,9 +69,9 @@ def analysis(id_censor):
     ' FROM news_entries JOIN scores ON scores.id_news = news_entries.id_news'\
     ' JOIN censors ON scores.id_censors = censors.id_censors WHERE censors.id_censors = {!s}'.format(id_censor)
     print(str_noname)
-    dfTrain = pd.read_sql_query(str_noname, DataBase.connection)
+    df_train = pd.read_sql_query(str_noname, DataBase.connection)
 
-    dfTrain = preparation_for_analysis(dfTrain)
+    df_train = preparation_for_analysis(df_train)
 
     # Сделать отбор новостей за которые не голосовал отдельно взятый Вася и убрать LIMIT
     str_noname = ' SELECT news_entries.id_news,'\
@@ -81,20 +81,14 @@ def analysis(id_censor):
                  'news_entries.rss_content'\
                   ' FROM scores RIGHT JOIN news_entries ON scores.id_news = news_entries.id_news'\
 				  ' WHERE scores.score is NULL LIMIT 40'
-    dfPredict = pd.read_sql_query(str_noname, DataBase.connection)
+    df_predict = pd.read_sql_query(str_noname, DataBase.connection)
 
-    dfPredict = preparation_for_analysis(dfPredict)
+    df_predict = preparation_for_analysis(df_predict)
 
     DataBase.close_db_connection()
     t1 = time()
 
     print(f" time= {t1 - t0:7.4f} seconds")
-
-    # TODO: Подумать над условиями выхода
-    if dfTrain.size < 1:
-        return
-    if dfPredict.size < 1:
-        return
 
     # df.info()
 
@@ -103,11 +97,11 @@ def analysis(id_censor):
     # print(df.head(10))
 
     # Step 1
-    lenTrain = dfTrain.size
+    lenTrain = df_train.size
     #dfTrain.append(dfPredict)
 
     # Перемешиване набора для обучения и тренировки
-    Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(dfTrain['text_final'], dfTrain['score'],
+    Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(df_train['text_final'], df_train['score'],
                                                                      test_size=0.3)
 
     # Step 2
@@ -120,7 +114,7 @@ def analysis(id_censor):
 
     # Step 3
     Tfidf_vect = TfidfVectorizer(max_features=5000)
-    Tfidf_vect.fit(dfTrain['text_final'])
+    Tfidf_vect.fit(df_train['text_final'])
     Train_X_Tfidf = Tfidf_vect.transform(Train_X)
     Test_X_Tfidf = Tfidf_vect.transform(Test_X)
 
@@ -135,10 +129,10 @@ def analysis(id_censor):
 
     # Оцениваем статьи ML (удв опр условиям) и пишем в таблицу
     # функция заглушка FunctionThanReturnGrade(статья) -> [1 ,2, 3, 4, 5]
-    arg = 1
+    # TODO: Отладить в цикле for неправильное поведение
     DataBase.open_db_connection()
-    for iterator in dfPredict['id_news']:
-        predict_grade = function_return_random_grade(arg, iterator)
+    for iterator in df_predict['id_news']:
+        predict_grade = function_return_random_grade(iterator)
         try:
             # INSERT INTO scores(score, id_censors, id_news) VALUES (5, (SELECT id_censors FROM censors WHERE person_name = 'John Hodk'), (SELECT id_news FROM news_entries WHERE
             # rss_id = '123'));
@@ -165,9 +159,9 @@ def analysis(id_censor):
 # В функцию передаём id объекта и путь сохранения и имя файла для сохранения
 # TODO: Подумать, что будет, если поверх старого фала сохранить новый с таким же названием
 # TODO: Если будем сохранять объекты обученные для анализа методом Баеса, то необходимо внедрить общий словарь id
-def saveObject(object_name, path_to_directory, file_name):
-    pickle.dump(object_name, open(os.path.join(str(path_to_directory) ,"ML_" + str(file_name) + ".sav"), "w+")
-    return 0
+# def saveObject(object_name, path_to_directory, file_name):
+#     pickle.dump(object_name, open(os.path.join(str(path_to_directory) ,"ML_" + str(file_name) + ".sav"), "w+")
+#     return 0
 
 # Функция для возвращения объекта из файла обратно в программу
 # Аргументы: имя необходимого файла, путь до этого файла.

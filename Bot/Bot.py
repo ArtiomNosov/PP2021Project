@@ -38,7 +38,8 @@ def get_news():
 # Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# Регистрация оценкок пользователя
+# Регистрация оценок пользователя
+# TODO: Отладить функцию. При использовании пытается сделать запись с одним и тем же id_news
 def register_grades(person_name, rss_list, grade, number_of_artical, page):
     global page_count
     DataBase.open_db_connection()
@@ -65,23 +66,11 @@ def start_message(message):
                                       f'/everydayNews - включение/выключение ежедневных новостей (пока что отключена).', parse_mode="HTML")
 
 
-#Выводим лист всех RSS подписок.
-#TODO: сделать возможность удалять или дополнять этот лист RSS подписками по вводу 1й RSS ссылки
+# Выводим лист всех RSS подписок.
+# TODO: сделать возможность удалять или дополнять этот лист RSS подписками по вводу 1й RSS ссылки
 @bot.message_handler(commands=['list'])
 def start_message(message):
     bot.send_message(message.chat.id, RSS_Utils.RSS_feeds(), None)
-
-
-# Регистрация пользователя по имени, т.е. запись его в глобальную переменную
-#TODO: фигня какая-то. Вообще переделать и сделать автоматическим.
-@bot.message_handler(commands=['register'])
-def start_message(message):
-    global person_name
-    person_name = message.from_user.id
-    DataBase.open_db_connection()
-    DataBase.insert_one_person(person_name)
-    DataBase.close_db_connection()
-    bot.send_message(message.chat.id, "Регистрация пользователя завершена!", None)
 
 
 #Вывод следующих page_count статей
