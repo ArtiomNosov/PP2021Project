@@ -22,7 +22,7 @@ def analize_grades():
 
     for eterator in result:
         print(eterator[0])
-        Analize_Utils.Analize(eterator[0])
+        Analize_Utils.analysis(eterator[0])
 
 
 while(True):

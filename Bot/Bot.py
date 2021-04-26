@@ -1,18 +1,18 @@
-#UPDATE 0.04.1
-#Добавлена команда /help, выводящая все существующие в боте команды
+# UPDATE 0.04.1
+# Добавлена команда /help, выводящая все существующие в боте команды
 
-#Импорты сторонних модулей
+# Импорты сторонних модулей
 import ssl
 import telebot
 from telebot import types
 from psycopg2 import Error
 import time
 
-#Импорт наших модулей
+# Импорт наших модулей
 import DataBase
 import RSS_Utils #Добавляем наши утилиты связанные с RSS
-import Mail_Utils #Добавляем наши утилиты для парсинга и сбора почты
-import Analize_Utils #Добавляем наши утилиты анализа данных
+# import Mail_Utils #Добавляем наши утилиты для парсинга и сбора почты
+# import Analize_Utils #Добавляем наши утилиты анализа данных
 
 # TODO: Убрать токен из текста программы
 bot = telebot.TeleBot('1631242798:AAEBKc1x16vZpEO3QkzAecK5HEM8jE2v510') # Токен telegram его бы лучше здесь не хранить.
@@ -38,8 +38,7 @@ def get_news():
 # Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
 ssl._create_default_https_context = ssl._create_unverified_context
 
-
-#Регистрация оценкок пользователя
+# Регистрация оценкок пользователя
 def register_grades(person_name, rss_list, grade, number_of_artical, page):
     global page_count
     DataBase.open_db_connection()
@@ -47,18 +46,15 @@ def register_grades(person_name, rss_list, grade, number_of_artical, page):
     print("Article number " + str(int(number_of_artical) + 1) + " written.")
     DataBase.close_db_connection()
 
-
-#Получение статей
+# Получение статей
 rss_list = get_news()
 
-
-#TODO: допилить приветствие, сделать в нем регистрацию пользователя
+# TODO: допилить приветствие, сделать в нем регистрацию пользователя
 @bot.message_handler(commands=['start'])
 def start_message(message):
     bot.send_message(message.chat.id, 'Приветсвтуем вас в ....(ну надо же что-нибудь написать)', None)
 
-
-#Команда, выводящая все существующие в боте команды (кроме /start)
+# Команда, выводящая все существующие в боте команды (кроме /start)
 @bot.message_handler(commands=['help'])
 def start_message(message):
     global page_count
@@ -66,7 +62,7 @@ def start_message(message):
                                       f'/list - вывод всех ваших RSS ссылок, на которые вы в данный момент подписаны,\n'\
                                       f'/register - регистрация пользователя, т.е. бот запоминает ваше имя (необходимо для бд),\n'\
                                       f'/newnews - выводится последние {page_count} новостей,\n'\
-                                      f'/everydayNews - включение/выключение еедневных новостей (пока что отключена).', parse_mode="HTML")
+                                      f'/everydayNews - включение/выключение ежедневных новостей (пока что отключена).', parse_mode="HTML")
 
 
 #Выводим лист всех RSS подписок.
@@ -135,13 +131,11 @@ def everydayNews_YN(message):
     keyboardYN.add(one_k, two_k)
     bot.send_message(message.chat.id, "Вы хотите каждый день получать рассылку новостей?", reply_markup=keyboardYN)
 
-
-
-#Получаем ответ пользователя, т.е. обработка всех ответов кнопочек и всего подобного
+# Получаем ответ пользователя, т.е. обработка всех ответов кнопочек и всего подобного
 @bot.callback_query_handler(func=lambda call: True)
 def query_handler(call):
     global rss_list
-    global page;
+    global page
     if call.data[0] in ("1", "2", "3", "4", "5"):
         register_grades(person_name, rss_list, call.data[0], call.data[1], page)
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
