@@ -2,7 +2,9 @@ import ssl
 import telebot
 from telebot import types
 from psycopg2 import Error
+import datetime as dt
 import time
+
 
 # Импорт наших модулей
 import DataBase
@@ -15,8 +17,20 @@ bot = telebot.TeleBot('1631242798:AAEBKc1x16vZpEO3QkzAecK5HEM8jE2v510') # Ток
 person_name = "No_Name"     # Имя гостя (по умолчанию No_Name)
 page_count = 5              # Кол-во статей за 1 вывод
 page = 0                    # Текущая страница
-everydayNews = False        # Ежедневная рассылка новостей
-timeOnOnePost = 60          # Через какое время будут присылаться новости (в секундах)
+everydayNews = False        # Ежедневная рассылка статей
+timeOnOnePost = 60          # Через какое время будут присылаться статьи (в секундах)
+days_limit = 5              # Насколько старые статьи будут присылаться пользователям (в днях)
+
+
+#Функция сравнения даты статьи с текущей датой. Выдает True <=> текущая дата - days_limit <= дата статьи
+def row_days_analize(row_3):
+    limitedday = dt.datetime.today() - dt.timedelta(days = days_limit)
+    paperday = dt.datetime.strptime(f"{row_3[3]:%d-%m-%Y}", "%d-%m-%Y")
+    if (limitedday <= paperday):
+        return True
+    else:
+        return False
+
 
 # Создание списка новостей
 def get_news():
@@ -25,9 +39,10 @@ def get_news():
     list_rss_news = DataBase.get_all_rss()
     DataBase.close_db_connection()
     for row in list_rss_news:
-        print(row)
-        content = "" + row[2]
-        rss_list.append([f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}", row[0]])
+        if row_days_analize(row):
+            print(row)
+            content = "" + row[2]
+            rss_list.append([f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}", row[0]])
     return rss_list
 
 
@@ -79,7 +94,6 @@ def next_news(message):
     global rss_list
     global page
     global page_count
-    global number_of_artical
     if (page + 1)*page_count < len(rss_list):
         for i in range(page_count*page, page_count*(page + 1)):
             keyboard = types.InlineKeyboardMarkup()
@@ -109,6 +123,7 @@ def next_news(message):
                 bot.send_message(message.chat.id, rss_list[i][0], reply_markup=keyboard, parse_mode="HTML")
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
+        bot.send_message(message.chat.id, "На сегодня статьи закончились!")
     page += 1
 
 
