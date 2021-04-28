@@ -16,10 +16,10 @@ import RSS_Utils #Добавляем наши утилиты связанные 
 bot = telebot.TeleBot('1631242798:AAEBKc1x16vZpEO3QkzAecK5HEM8jE2v510') # Токен telegram его бы лучше здесь не хранить.
 person_name = "No_Name"     # Имя гостя (по умолчанию No_Name)
 page_count = 5              # Кол-во статей за 1 вывод
-page = 0                    # Текущая страница
 everydayNews = False        # Ежедневная рассылка статей
 timeOnOnePost = 60          # Через какое время будут присылаться статьи (в секундах)
 days_limit = 5              # Насколько старые статьи будут присылаться пользователям (в днях)
+user_pages = {}             # Словарь со страницами пользователей
 
 
 #Функция сравнения даты статьи с текущей датой. Выдает True <=> текущая дата - days_limit <= дата статьи
@@ -51,11 +51,11 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # Регистрация оценок пользователя
 # TODO: Отладить функцию. При использовании пытается сделать запись с одним и тем же id_news
-def register_grades(person_name, rss_list, grade, number_of_artical):
+def register_grades(person_name, rss_list, grade, number_of_artical, user_pages):
     global page_count
+    print(str(person_name) + "___________" + str(number_of_artical))
     DataBase.open_db_connection()
     DataBase.write_one_row_in_censors(person_name, rss_list[int(number_of_artical)][1], int(grade))
-    print("Article number " + str(int(number_of_artical) + 1) + " written.")
     DataBase.close_db_connection()
 
 # Получение статей
@@ -92,10 +92,12 @@ def start_message(message):
 @bot.message_handler(commands=['newnews'])
 def next_news(message):
     global rss_list
-    global page
+    global user_pages
     global page_count
-    if (page + 1)*page_count < len(rss_list):
-        for i in range(page_count*page, page_count*(page + 1)):
+    if user_pages.get(message.from_user.id) == None:
+        user_pages.update({message.from_user.id: 0})
+    if (user_pages.get(message.from_user.id) + 1)*page_count < len(rss_list):
+        for i in range(page_count*user_pages.get(message.from_user.id), page_count*(user_pages.get(message.from_user.id) + 1)):
             keyboard = types.InlineKeyboardMarkup()
             one_k = types.InlineKeyboardButton(text='1', callback_data='1'+str(i))
             two_k = types.InlineKeyboardButton(text='2', callback_data='2'+str(i))
@@ -108,9 +110,9 @@ def next_news(message):
                 bot.send_message(message.chat.id, rss_list[i][0], reply_markup=keyboard, parse_mode="HTML")
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
-            time.sleep(1)
+        user_pages.update({message.from_user.id: user_pages.get(message.from_user.id) + 1})
     else:
-        for i in range(page_count*page, len(rss_list)):
+        for i in range(page_count*user_pages.get(message.from_user.id), len(rss_list)):
             keyboard = types.InlineKeyboardMarkup()
             one_k = types.InlineKeyboardButton(text='1', callback_data='1'+str(i))
             two_k = types.InlineKeyboardButton(text='2', callback_data='2'+str(i))
@@ -124,8 +126,7 @@ def next_news(message):
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
         bot.send_message(message.chat.id, "На сегодня статьи закончились!")
-    page += 1
-
+        user_pages.update({message.from_user.id: user_pages.get(message.from_user.id) + 1})
 
 @bot.message_handler(commands=['everydayNews'])
 def everydayNews_YN(message):
@@ -139,8 +140,9 @@ def everydayNews_YN(message):
 @bot.callback_query_handler(func=lambda call: True)
 def query_handler(call):
     global rss_list
+    global user_pages
     if call.data[0] in ("1", "2", "3", "4", "5"):
-        register_grades(call.from_user.id, rss_list, call.data[0], call.data[1])
+        register_grades(call.from_user.id, rss_list, call.data[0], call.data[1::], user_pages)
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
     global everydayNews
 
