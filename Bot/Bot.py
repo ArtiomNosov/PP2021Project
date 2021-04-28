@@ -1,7 +1,3 @@
-# UPDATE 0.04.1
-# Добавлена команда /help, выводящая все существующие в боте команды
-
-# Импорты сторонних модулей
 import ssl
 import telebot
 from telebot import types
@@ -40,7 +36,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # Регистрация оценок пользователя
 # TODO: Отладить функцию. При использовании пытается сделать запись с одним и тем же id_news
-def register_grades(person_name, rss_list, grade, number_of_artical, page):
+def register_grades(person_name, rss_list, grade, number_of_artical):
     global page_count
     DataBase.open_db_connection()
     DataBase.write_one_row_in_censors(person_name, rss_list[int(number_of_artical)][1], int(grade))
@@ -54,6 +50,10 @@ rss_list = get_news()
 @bot.message_handler(commands=['start'])
 def start_message(message):
     bot.send_message(message.chat.id, 'Приветсвтуем вас в ....(ну надо же что-нибудь написать)', None)
+    DataBase.open_db_connection()
+    DataBase.insert_one_person(message.from_user.id)
+    DataBase.close_db_connection()
+
 
 # Команда, выводящая все существующие в боте команды (кроме /start)
 @bot.message_handler(commands=['help'])
@@ -124,11 +124,9 @@ def everydayNews_YN(message):
 @bot.callback_query_handler(func=lambda call: True)
 def query_handler(call):
     global rss_list
-    global page
     if call.data[0] in ("1", "2", "3", "4", "5"):
-        register_grades(person_name, rss_list, call.data[0], call.data[1], page)
+        register_grades(call.from_user.id, rss_list, call.data[0], call.data[1])
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
-        bot.send_message(call.message.chat.id, "Ваша оценка статьи записана!")
     global everydayNews
 
 
