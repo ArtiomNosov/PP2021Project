@@ -22,7 +22,7 @@ days_limit = 5              # Насколько старые статьи бу�
 user_pages = {}             # Словарь со страницами пользователей
 
 
-#Функция сравнения даты статьи с текущей датой. Выдает True <=> текущая дата - days_limit <= дата статьи
+# Функция сравнения даты статьи с текущей датой. Выдает True <=> текущая дата - days_limit <= дата статьи
 def row_days_analize(row_3):
     limitedday = dt.datetime.today() - dt.timedelta(days = days_limit)
     paperday = dt.datetime.strptime(f"{row_3[3]:%d-%m-%Y}", "%d-%m-%Y")
@@ -50,7 +50,6 @@ def get_news():
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # Регистрация оценок пользователя
-# TODO: Отладить функцию. При использовании пытается сделать запись с одним и тем же id_news
 def register_grades(person_name, rss_list, grade, number_of_artical, user_pages):
     global page_count
     print(str(person_name) + "___________" + str(number_of_artical))
@@ -61,10 +60,12 @@ def register_grades(person_name, rss_list, grade, number_of_artical, user_pages)
 # Получение статей
 rss_list = get_news()
 
-# TODO: допилить приветствие, сделать в нем регистрацию пользователя
+
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    bot.send_message(message.chat.id, 'Приветсвтуем вас в ....(ну надо же что-нибудь написать)', None)
+    bot.send_message(message.chat.id, 'Приветсвтуем вас в телеграм боте! Данный бот предназначен для обучения путем '
+                                      'чтения интересных для вас статей. Чтобы узнать о всех коммандах, напишите '
+                                      '/help в чат.', None)
     DataBase.open_db_connection()
     DataBase.insert_one_person(message.from_user.id)
     DataBase.close_db_connection()
@@ -76,7 +77,6 @@ def start_message(message):
     global page_count
     bot.send_message(message.chat.id, f'<b>Этот бот имеет следующие команды:</b>\n'\
                                       f'/list - вывод всех ваших RSS ссылок, на которые вы в данный момент подписаны,\n'\
-                                      f'/register - регистрация пользователя, т.е. бот запоминает ваше имя (необходимо для бд),\n'\
                                       f'/newnews - выводится последние {page_count} новостей,\n'\
                                       f'/everydayNews - включение/выключение ежедневных новостей (пока что отключена).', parse_mode="HTML")
 
@@ -88,7 +88,7 @@ def start_message(message):
     bot.send_message(message.chat.id, RSS_Utils.RSS_feeds(), None)
 
 
-#Вывод следующих page_count статей
+# Вывод следующих page_count статей
 @bot.message_handler(commands=['newnews'])
 def next_news(message):
     global rss_list
