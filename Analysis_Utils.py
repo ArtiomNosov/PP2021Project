@@ -19,6 +19,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
 
+minCountPapersForAnalize = 50 #пороговое значения кол-ва статей для начала анализа
+
 regexp_token = RegexpTokenizer(r'\w+')
 
 russian_stopwords = stopwords.words('english') + [a for a in string.punctuation]
@@ -83,6 +85,11 @@ def Analize(id_censor):
     print(str_noname)
     dfTrain = pd.read_sql_query(str_noname, DataBase.connection)
 
+    if dfTrain.shape[0] < minCountPapersForAnalize:
+        print(f"Недостаточно оцененных пользователем статей для анализа!"
+              f"Необходимый минимум: {minCountPapersForAnalize}.\n На данный момент кол-во оцененных статей: " + str(dfTrain.shape[0]))
+        return 0
+
     dfTrain = PreparationForAnalize(dfTrain)
     dfTrain = dfTrain.drop(["id_news"], axis=1)
     # Сделать отбор новостей за которые не голосовал отдельно взятый Вася и убрать LIMIT
@@ -127,10 +134,8 @@ def Analize(id_censor):
     Test_Y = Encoder.fit_transform(Test_Y)
 
     # Step 3
-    Tfidf_vect = TfidfVectorizer()#max_features=5000
-    tt = [" ".join(df_to_list_append(dfTrain['text_final']))]
-    print(tt)
-    Tfidf_vect.fit(tt)
+    Tfidf_vect = TfidfVectorizer(max_features=50000)
+    Tfidf_vect.fit(dfTrain['text_final'])
     Train_X_Tfidf = Tfidf_vect.transform(Train_X)
     Test_X_Tfidf = Tfidf_vect.transform(Test_X)
     print(Tfidf_vect.vocabulary_)
@@ -144,9 +149,6 @@ def Analize(id_censor):
     print("Naive Bayes Accuracy Score -> ", accuracy_score(predictions_NB, Test_Y) * 100)
 
     # Оцениваем статьи ML (удв опр условиям) и пишем в таблицу
-    # функция заглушка FunctionThanReturnGrade(статья) -> [1 ,2, 3, 4, 5]
-    arg = 1
-
 
     DataBase.open_db_connection()
     i = 0
@@ -155,9 +157,9 @@ def Analize(id_censor):
         text_predict_iterator_X = (dfPredict.iloc[i][1])#.drop(['id_news', 'rss_content', 'tokenized_rss_text'], axis = 1)
         Tfidf_vect_predict_iterator_X = Tfidf_vect.transform([text_predict_iterator_X])
         predict_grade = Naive.predict(Tfidf_vect_predict_iterator_X)
+        #print(text_predict_iterator_X[0:1000:1])
+        print(str(dfPredict.iloc[i][0]) + " - " + str(predict_grade[0]))
         try:
-            # INSERT INTO scores(score, id_censors, id_news) VALUES (5, (SELECT id_censors FROM censors WHERE person_name = 'John Hodk'), (SELECT id_news FROM news_entries WHERE
-            # rss_id = '123'));
             sql_insert_xml = "INSERT INTO public.predict_scores (" \
                              "id_censors," \
                              "id_news," \
@@ -166,7 +168,7 @@ def Analize(id_censor):
             DataBase.cursor.execute(sql_insert_xml, (id_censor, iterator, int(predict_grade[0])))
             DataBase.connection.commit()
         except (Exception, Error) as error:
-            print("Ошибка при работе с PostgreSQL", error)
+            #print("Ошибка при работе с PostgreSQL", error)
             DataBase.connection.rollback()
             try:
                 sqlUpdate = 'UPDATE public.predict_scores SET predict_score = {!s} WHERE id_censors = {!s} AND id_news = {!s}'.format(predict_grade, id_censor, iterator)
@@ -174,8 +176,10 @@ def Analize(id_censor):
                 DataBase.connection.commit()
             except (Exception, Error) as error:
                 DataBase.connection.rollback()
+        i += 1
     DataBase.close_db_connection()
-    i += 1
+    return 0
+
 Analize(1)
 # Функция сохранения объекта naive_bayes.MultinomialNB() обученного
 # для определённого пользователя по пути Sourse/Saved_ML_forEveryone
