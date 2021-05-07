@@ -1,9 +1,12 @@
 from random import random, randint
-
+from sklearn.feature_extraction.text import TfidfVectorizer
 from psycopg2._psycopg import Error
 from sklearn import model_selection, naive_bayes
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.naive_bayes import MultinomialNB
 
 import DataBase
 
@@ -29,36 +32,45 @@ def function_return_random_grade(str):
     print(str)
     return randint(1, 5)
 
-def preparation_for_analysis(data_frame):
-    data_frame = data_frame.drop(["id_news", "rss_id", "id_censors"], axis=1)  # удаляем id
+def df_to_list_append(df):
+    text_final = []
+    for i in df:
+        i = i[2:-2:1].split("', '")
+        for j in i:
+            text_final.append(j)
+    return text_final
 
-    data_frame.rss_content.astype(str)  # печатаем данные
+def PreparationForAnalize(df):
+    df = df.drop(["rss_id", "id_censors"], axis=1)  # удаляем id
+
+    df.rss_content.astype(str)  # печатаем данные
     # print(df.head(10))
 
-    data_frame["tokenized_rss_text"] = data_frame["rss_content"].fillna("").map(nltk.word_tokenize)
+    df["tokenized_rss_text"] = df["rss_content"].fillna("").map(nltk.word_tokenize)
     # print(df.head(10))
 
     tag_map = nltk.defaultdict(lambda: wn.NOUN)
     tag_map['J'] = wn.ADJ
     tag_map['V'] = wn.VERB
     tag_map['R'] = wn.ADV
-    for index, entry in enumerate(data_frame["tokenized_rss_text"]):
+    for index, entry in enumerate(df["tokenized_rss_text"]):
         # Declaring Empty List to store the words that follow the rules for this step
-        final_words = []
+        Final_words = []
         # Initializing WordNetLemmatizer()
         word_Lemmatized = WordNetLemmatizer()
         # pos_tag function below will provide the 'tag' i.e if the word is Noun(N) or Verb(V) or something else.
         for word, tag in nltk.pos_tag(entry):
             # Below condition is to check for Stop words and consider only alphabets
             if word not in stopwords.words('english') and word.isalpha():
-                word_final = word_Lemmatized.lemmatize(word, tag_map[tag[0]])
-                final_words.append(word_final)
+                word_Final = word_Lemmatized.lemmatize(word, tag_map[tag[0]])
+                Final_words.append(word_Final)
         # The final processed set of words for each iteration will be stored in 'text_final'
-        data_frame.loc[index, 'text_final'] = str(final_words)
+        df.loc[index, 'text_final'] = str(Final_words)
         # Далее везде заменяем rss_text на text_final
-    return data_frame
+    return df
 
-def analysis(id_censor):
+def Analize(id_censor):
+
     t0 = time()
     DataBase.open_db_connection()
     str_noname = 'SELECT news_entries.id_news,'\
@@ -69,10 +81,10 @@ def analysis(id_censor):
     ' FROM news_entries JOIN scores ON scores.id_news = news_entries.id_news'\
     ' JOIN censors ON scores.id_censors = censors.id_censors WHERE censors.id_censors = {!s}'.format(id_censor)
     print(str_noname)
-    df_train = pd.read_sql_query(str_noname, DataBase.connection)
+    dfTrain = pd.read_sql_query(str_noname, DataBase.connection)
 
-    df_train = preparation_for_analysis(df_train)
-
+    dfTrain = PreparationForAnalize(dfTrain)
+    dfTrain = dfTrain.drop(["id_news"], axis=1)
     # Сделать отбор новостей за которые не голосовал отдельно взятый Вася и убрать LIMIT
     str_noname = ' SELECT news_entries.id_news,'\
                  'news_entries.rss_id,'\
@@ -81,14 +93,20 @@ def analysis(id_censor):
                  'news_entries.rss_content'\
                   ' FROM scores RIGHT JOIN news_entries ON scores.id_news = news_entries.id_news'\
 				  ' WHERE scores.score is NULL LIMIT 40'
-    df_predict = pd.read_sql_query(str_noname, DataBase.connection)
-
-    df_predict = preparation_for_analysis(df_predict)
+    dfPredict = pd.read_sql_query(str_noname, DataBase.connection)
+    dfPredict = dfPredict.drop(["score"], axis=1)
+    dfPredict = PreparationForAnalize(dfPredict)
 
     DataBase.close_db_connection()
     t1 = time()
 
     print(f" time= {t1 - t0:7.4f} seconds")
+
+    #Подумать над условиями выхода
+    if dfTrain.size < 1:
+        return
+    if dfPredict.size < 1:
+        return
 
     # df.info()
 
@@ -97,27 +115,25 @@ def analysis(id_censor):
     # print(df.head(10))
 
     # Step 1
-    lenTrain = df_train.size
+    lenTrain = dfTrain.size
     #dfTrain.append(dfPredict)
 
-    # Перемешиване набора для обучения и тренировки
-    Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(df_train['text_final'], df_train['score'],
+    Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(dfTrain['text_final'], dfTrain['score'],
                                                                      test_size=0.3)
 
     # Step 2
-    # Делаем из набора слов набор категорий
     Encoder = LabelEncoder()
     Train_Y = Encoder.fit_transform(Train_Y)
     Test_Y = Encoder.fit_transform(Test_Y)
-    print(Train_Y)
-    print(Test_Y)
 
     # Step 3
-    Tfidf_vect = TfidfVectorizer(max_features=5000)
-    Tfidf_vect.fit(df_train['text_final'])
+    Tfidf_vect = TfidfVectorizer()#max_features=5000
+    tt = [" ".join(df_to_list_append(dfTrain['text_final']))]
+    print(tt)
+    Tfidf_vect.fit(tt)
     Train_X_Tfidf = Tfidf_vect.transform(Train_X)
     Test_X_Tfidf = Tfidf_vect.transform(Test_X)
-
+    print(Tfidf_vect.vocabulary_)
     # Step 4
     # fit the training dataset on the NB classifier
     Naive = naive_bayes.MultinomialNB()
@@ -129,10 +145,16 @@ def analysis(id_censor):
 
     # Оцениваем статьи ML (удв опр условиям) и пишем в таблицу
     # функция заглушка FunctionThanReturnGrade(статья) -> [1 ,2, 3, 4, 5]
-    # TODO: Отладить в цикле for неправильное поведение
+    arg = 1
+
+
     DataBase.open_db_connection()
-    for iterator in df_predict['id_news']:
-        predict_grade = function_return_random_grade(iterator)
+    i = 0
+    for iterator in dfPredict['id_news']:
+        predict_grade = 0
+        text_predict_iterator_X = (dfPredict.iloc[i][1])#.drop(['id_news', 'rss_content', 'tokenized_rss_text'], axis = 1)
+        Tfidf_vect_predict_iterator_X = Tfidf_vect.transform([text_predict_iterator_X])
+        predict_grade = Naive.predict(Tfidf_vect_predict_iterator_X)
         try:
             # INSERT INTO scores(score, id_censors, id_news) VALUES (5, (SELECT id_censors FROM censors WHERE person_name = 'John Hodk'), (SELECT id_news FROM news_entries WHERE
             # rss_id = '123'));
@@ -141,7 +163,7 @@ def analysis(id_censor):
                              "id_news," \
                              "predict_score" \
                              ") VALUES (%s,%s,%s);"
-            DataBase.cursor.execute(sql_insert_xml, (id_censor, iterator, predict_grade))
+            DataBase.cursor.execute(sql_insert_xml, (id_censor, iterator, int(predict_grade[0])))
             DataBase.connection.commit()
         except (Exception, Error) as error:
             print("Ошибка при работе с PostgreSQL", error)
@@ -153,7 +175,8 @@ def analysis(id_censor):
             except (Exception, Error) as error:
                 DataBase.connection.rollback()
     DataBase.close_db_connection()
-
+    i += 1
+Analize(1)
 # Функция сохранения объекта naive_bayes.MultinomialNB() обученного
 # для определённого пользователя по пути Sourse/Saved_ML_forEveryone
 # В функцию передаём id объекта и путь сохранения и имя файла для сохранения
