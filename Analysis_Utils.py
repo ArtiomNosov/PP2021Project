@@ -155,10 +155,10 @@ def Analize(id_censor):
     i = 0
     for iterator in dfPredict['id_news']:
         predict_grade = 0
-        text_predict_iterator_X = (dfPredict.iloc[i][1])#.drop(['id_news', 'rss_content', 'tokenized_rss_text'], axis = 1)
+        text_predict_iterator_X = (dfPredict.iloc[i][1]) #.drop(['id_news', 'rss_content', 'tokenized_rss_text'], axis = 1)
         Tfidf_vect_predict_iterator_X = Tfidf_vect.transform([text_predict_iterator_X])
         predict_grade = Naive.predict(Tfidf_vect_predict_iterator_X)
-        #print(text_predict_iterator_X[0:1000:1])
+        # print(text_predict_iterator_X[0:1000:1])
         print(str(dfPredict.iloc[i][0]) + " - " + str(predict_grade[0]))
         try:
             sql_insert_xml = "INSERT INTO public.predict_scores (" \
@@ -169,10 +169,12 @@ def Analize(id_censor):
             DataBase.cursor.execute(sql_insert_xml, (id_censor, iterator, int(predict_grade[0])))
             DataBase.connection.commit()
         except (Exception, Error) as error:
-            #print("Ошибка при работе с PostgreSQL", error)
+            print("Ошибка при работе с PostgreSQL", error)
             DataBase.connection.rollback()
             try:
-                sqlUpdate = 'UPDATE public.predict_scores SET predict_score = {!s} WHERE id_censors = {!s} AND id_news = {!s}'.format(predict_grade, id_censor, iterator)
+                sqlUpdate = 'UPDATE public.predict_scores SET predict_score = {!s} ' \
+                            'WHERE id_censors = {!s} ' \
+                            'AND id_news = {!s}'.format(predict_grade, id_censor, iterator)
                 DataBase.cursor.execute(sqlUpdate)
                 DataBase.connection.commit()
             except (Exception, Error) as error:
@@ -180,5 +182,6 @@ def Analize(id_censor):
         i += 1
     DataBase.close_db_connection()
     return 0
+
 
 Analize(1)
