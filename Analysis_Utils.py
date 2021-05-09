@@ -18,7 +18,8 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 
-minCountPapersForAnalysis = 50  # пороговое значения кол-ва статей для начала анализа
+# минимальное значения кол-ва статей для начала анализа статей
+minCountPapersForAnalysis = 50
 
 regexp_token = RegexpTokenizer(r'\w+')
 
