@@ -18,6 +18,8 @@ from nltk.corpus import wordnet as wn
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
 
 minCountPapersForAnalysis = 50  # пороговое значения кол-ва статей для начала анализа
 
@@ -26,13 +28,10 @@ regexp_token = RegexpTokenizer(r'\w+')
 russian_stopwords = stopwords.words('english') + [a for a in string.punctuation]
 
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-import pandas as pd
-
 def function_return_random_grade(str):
     print(str)
     return randint(1, 5)
+
 
 def df_to_list_append(df):
     text_final = []
@@ -41,6 +40,7 @@ def df_to_list_append(df):
         for j in i:
             text_final.append(j)
     return text_final
+
 
 def PreparationForAnalize(df):
     df = df.drop(["rss_id", "id_censors"], axis=1)  # удаляем id
@@ -70,6 +70,7 @@ def PreparationForAnalize(df):
         df.loc[index, 'text_final'] = str(Final_words)
         # Далее везде заменяем rss_text на text_final
     return df
+
 
 def Analize(id_censor):
 
@@ -109,7 +110,7 @@ def Analize(id_censor):
 
     print(f" time= {t1 - t0:7.4f} seconds")
 
-    #Подумать над условиями выхода
+    # Подумать над условиями выхода
     if dfTrain.size < 1:
         return
     if dfPredict.size < 1:
@@ -123,7 +124,7 @@ def Analize(id_censor):
 
     # Step 1
     lenTrain = dfTrain.size
-    #dfTrain.append(dfPredict)
+    # dfTrain.append(dfPredict)
 
     Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split(dfTrain['text_final'], dfTrain['score'],
                                                                      test_size=0.3)
@@ -181,15 +182,3 @@ def Analize(id_censor):
     return 0
 
 Analize(1)
-# Функция сохранения объекта naive_bayes.MultinomialNB() обученного
-# для определённого пользователя по пути Sourse/Saved_ML_forEveryone
-# В функцию передаём id объекта и путь сохранения и имя файла для сохранения
-# TODO: Подумать, что будет, если поверх старого фала сохранить новый с таким же названием
-# TODO: Если будем сохранять объекты обученные для анализа методом Баеса, то необходимо внедрить общий словарь id
-# def saveObject(object_name, path_to_directory, file_name):
-#     pickle.dump(object_name, open(os.path.join(str(path_to_directory) ,"ML_" + str(file_name) + ".sav"), "w+")
-#     return 0
-
-# Функция для возвращения объекта из файла обратно в программу
-# Аргументы: имя необходимого файла, путь до этого файла.
-#def unpaсkObject(path_to_directory, file_name):
