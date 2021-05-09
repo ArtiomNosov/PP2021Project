@@ -7,11 +7,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
-
 import DataBase
-
 import string
-
 import nltk
 from time import time
 from nltk.corpus import wordnet as wn
@@ -67,7 +64,7 @@ def PreparationForAnalize(df):
     return df
 
 
-def Analize(id_censor):
+def Analysis(id_censor):
 
     t0 = time()
     DataBase.open_db_connection()
@@ -173,4 +170,4 @@ def Analize(id_censor):
     return 0
 
 
-Analize(1)
+Analysis(1)
