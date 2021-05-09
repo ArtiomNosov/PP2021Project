@@ -19,7 +19,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
 
-minCountPapersForAnalize = 50 #пороговое значения кол-ва статей для начала анализа
+minCountPapersForAnalysis = 50  # пороговое значения кол-ва статей для начала анализа
 
 regexp_token = RegexpTokenizer(r'\w+')
 
@@ -85,9 +85,9 @@ def Analize(id_censor):
     print(str_noname)
     dfTrain = pd.read_sql_query(str_noname, DataBase.connection)
 
-    if dfTrain.shape[0] < minCountPapersForAnalize:
+    if dfTrain.shape[0] < minCountPapersForAnalysis:
         print(f"Недостаточно оцененных пользователем статей для анализа!"
-              f"Необходимый минимум: {minCountPapersForAnalize}.\n На данный момент кол-во оцененных статей: " + str(dfTrain.shape[0]))
+              f"Необходимый минимум: {minCountPapersForAnalysis}.\n На данный момент кол-во оцененных статей: " + str(dfTrain.shape[0]))
         return 0
 
     dfTrain = PreparationForAnalize(dfTrain)
