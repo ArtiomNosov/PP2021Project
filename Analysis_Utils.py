@@ -28,11 +28,6 @@ regexp_token = RegexpTokenizer(r'\w+')
 russian_stopwords = stopwords.words('english') + [a for a in string.punctuation]
 
 
-def function_return_random_grade(str):
-    print(str)
-    return randint(1, 5)
-
-
 def df_to_list_append(df):
     text_final = []
     for i in df:
