@@ -41,6 +41,21 @@ def close_db_connection():
         connection.close()
         print("Соединение с PostgreSQL закрыто")
 
+def get_user_id(username):
+    global connection, cursor
+    try:
+        sql_select_10 = "SELECT id_censors " \
+                        "FROM censors " \
+                        "WHERE censors.person_name = %s::varchar"
+
+        cursor.execute(sql_select_10, [username])
+        result = cursor.fetchall()
+        # print(result)
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        connection.rollback()
+
+    return (result[0])[0]
 
 def write_one_row_in_db(xml_str, from_url_str, author_str,\
                     content_str, id_str, publisher_str, tags_str, title_str,\
@@ -111,6 +126,23 @@ def get_all_rss():
         cursor.execute(sql_select_10)
         result = cursor.fetchall()
         #print(result)
+    except (Exception, Error) as error:
+        print("Ошибка при работе с PostgreSQL", error)
+        connection.rollback()
+
+    return result
+
+def get_all_analized_rss(person_id):
+    global connection, cursor
+    try:
+        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url " \
+                        "FROM news_entries JOIN predict_scores ON news_entries.id_news = predict_scores.id_news " \
+                        "WHERE predict_scores.id_censors = {!s}".format(person_id)
+
+
+        cursor.execute(sql_select_10)
+        result = cursor.fetchall()
+        # print(result)
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
         connection.rollback()

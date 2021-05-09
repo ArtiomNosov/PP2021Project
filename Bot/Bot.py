@@ -45,6 +45,19 @@ def get_news():
             rss_list.append([f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}", row[0]])
     return rss_list
 
+def get_news_for_person(person_id):
+    rss_list = []
+    DataBase.open_db_connection()
+    list_rss_news = DataBase.get_all_analized_rss(person_id)
+    DataBase.close_db_connection()
+    for row in list_rss_news:
+        if row_days_analize(row):
+            print(row)
+            content = "" + row[2]
+            rss_list.append([
+                                f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}",
+                                row[0]])
+    return rss_list
 
 # Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -94,35 +107,44 @@ def next_news(message):
     global rss_list
     global user_pages
     global page_count
+    DataBase.open_db_connection()
+    if get_news_for_person(DataBase.get_user_id(message.from_user.id)) != []:
+        individual_list = get_news_for_person(DataBase.get_user_id(message.from_user.id))
+        print(DataBase.get_user_id(message.from_user.id))
+    else:
+        individual_list = rss_list
+        print(DataBase.get_user_id(message.from_user.id))
+    DataBase.close_db_connection()
     if user_pages.get(message.from_user.id) == None:
         user_pages.update({message.from_user.id: 0})
-    if (user_pages.get(message.from_user.id) + 1)*page_count < len(rss_list):
-        for i in range(page_count*user_pages.get(message.from_user.id), page_count*(user_pages.get(message.from_user.id) + 1)):
+    if (user_pages.get(message.from_user.id) + 1) * page_count < len(individual_list):
+        for i in range(page_count * user_pages.get(message.from_user.id),
+                       page_count * (user_pages.get(message.from_user.id) + 1)):
             keyboard = types.InlineKeyboardMarkup()
-            one_k = types.InlineKeyboardButton(text='1', callback_data='1'+str(i))
-            two_k = types.InlineKeyboardButton(text='2', callback_data='2'+str(i))
-            three_k = types.InlineKeyboardButton(text='3', callback_data='3'+str(i))
-            four_k = types.InlineKeyboardButton(text='4', callback_data='4'+str(i))
-            five_k = types.InlineKeyboardButton(text='5', callback_data='5'+str(i))
+            one_k = types.InlineKeyboardButton(text='1', callback_data='1' + str(i))
+            two_k = types.InlineKeyboardButton(text='2', callback_data='2' + str(i))
+            three_k = types.InlineKeyboardButton(text='3', callback_data='3' + str(i))
+            four_k = types.InlineKeyboardButton(text='4', callback_data='4' + str(i))
+            five_k = types.InlineKeyboardButton(text='5', callback_data='5' + str(i))
             keyboard.add(one_k, two_k, three_k)
             keyboard.add(four_k, five_k)
             try:
-                bot.send_message(message.chat.id, rss_list[i][0], reply_markup=keyboard, parse_mode="HTML")
+                bot.send_message(message.chat.id, individual_list[i][0], reply_markup=keyboard, parse_mode="HTML")
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
         user_pages.update({message.from_user.id: user_pages.get(message.from_user.id) + 1})
     else:
-        for i in range(page_count*user_pages.get(message.from_user.id), len(rss_list)):
+        for i in range(page_count * user_pages.get(message.from_user.id), len(individual_list)):
             keyboard = types.InlineKeyboardMarkup()
-            one_k = types.InlineKeyboardButton(text='1', callback_data='1'+str(i))
-            two_k = types.InlineKeyboardButton(text='2', callback_data='2'+str(i))
-            three_k = types.InlineKeyboardButton(text='3', callback_data='3'+str(i))
-            four_k = types.InlineKeyboardButton(text='4', callback_data='4'+str(i))
-            five_k = types.InlineKeyboardButton(text='5', callback_data='5'+str(i))
+            one_k = types.InlineKeyboardButton(text='1', callback_data='1' + str(i))
+            two_k = types.InlineKeyboardButton(text='2', callback_data='2' + str(i))
+            three_k = types.InlineKeyboardButton(text='3', callback_data='3' + str(i))
+            four_k = types.InlineKeyboardButton(text='4', callback_data='4' + str(i))
+            five_k = types.InlineKeyboardButton(text='5', callback_data='5' + str(i))
             keyboard.add(one_k, two_k, three_k)
             keyboard.add(four_k, five_k)
             try:
-                bot.send_message(message.chat.id, rss_list[i][0], reply_markup=keyboard, parse_mode="HTML")
+                bot.send_message(message.chat.id, individual_list[i][0], reply_markup=keyboard, parse_mode="HTML")
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
         bot.send_message(message.chat.id, "На сегодня статьи закончились!")
