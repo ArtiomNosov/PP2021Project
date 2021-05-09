@@ -38,10 +38,8 @@ def PreparationForAnalize(df):
     df = df.drop(["rss_id", "id_censors"], axis=1)  # удаляем id
 
     df.rss_content.astype(str)  # печатаем данные
-    # print(df.head(10))
 
     df["tokenized_rss_text"] = df["rss_content"].fillna("").map(nltk.word_tokenize)
-    # print(df.head(10))
 
     tag_map = nltk.defaultdict(lambda: wn.NOUN)
     tag_map['J'] = wn.ADJ
