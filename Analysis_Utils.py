@@ -110,12 +110,6 @@ def Analize(id_censor):
 
     print(f" time= {t1 - t0:7.4f} seconds")
 
-    # Подумать над условиями выхода
-    if dfTrain.size < 1:
-        return
-    if dfPredict.size < 1:
-        return
-
     # df.info()
 
     # df.isnull().sum() # печатает сумму
