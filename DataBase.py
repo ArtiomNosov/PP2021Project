@@ -7,7 +7,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 db_name = "article_predictor"
 db_password = "010112"
 db_user_name = "artiom"
-db_host_name = "127.0.0.1"
+db_host_name = "34.71.94.207"
 db_port_number ="5432"
 
 #Объект соединения с базой данных
