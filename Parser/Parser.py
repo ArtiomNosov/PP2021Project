@@ -1,6 +1,6 @@
 import sys
 
-import DataBase   #Библиотека для работы с базой данных. В нашем случае мы пользуемся PostgreSQL.
+from ../PP2021Project import DataBase   #Библиотека для работы с базой данных. В нашем случае мы пользуемся PostgreSQL.
 import xmltodict  #Используем один раз, чтобы вернуть
 import xml
 import xml.etree.ElementTree as ET
