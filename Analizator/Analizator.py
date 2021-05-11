@@ -1,6 +1,10 @@
 import time
 
 # Импорты наших модулей
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import DataBase
 import Analysis_Utils
 

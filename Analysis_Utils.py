@@ -1,3 +1,7 @@
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from random import random, randint
 from sklearn.feature_extraction.text import TfidfVectorizer
 from psycopg2._psycopg import Error

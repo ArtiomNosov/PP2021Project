@@ -5,6 +5,9 @@
 # version: 0.0.01
 ######################################################################################
 
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import DataBase
 
 import psycopg2

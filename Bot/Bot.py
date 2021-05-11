@@ -1,3 +1,7 @@
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import ssl
 import telebot
 from telebot import types

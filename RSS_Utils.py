@@ -1,3 +1,6 @@
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import xml
 import xml.etree.ElementTree as ET
 import feedparser
