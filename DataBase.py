@@ -4,7 +4,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Настройки подключения
 # TODO: сделать сохранение настроек в файле Properties.json или в переменных среды окружения windows
-db_name = "rss_db"
+db_name = "article_predictor"
 db_password = "010112"
 db_user_name = "artiom"
 db_host_name = "127.0.0.1"
