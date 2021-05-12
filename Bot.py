@@ -97,6 +97,7 @@ def start_message(message):
     DataBase.open_db_connection()
     DataBase.insert_one_person(message.from_user.id)
     DataBase.close_db_connection()
+    time.sleep(1)
 
 
 # Команда, выводящая все существующие в боте команды (кроме /start)
@@ -108,6 +109,7 @@ def start_message(message):
                                       f'/newnews - выводится последние {page_count} новостей,\n'\
                                       f'/everydayNews - включение/выключение ежедневных новостей (пока что отключена).',
                      parse_mode="HTML")
+    time.sleep(1)
 
 
 # Выводим лист всех RSS подписок.
@@ -115,6 +117,7 @@ def start_message(message):
 @bot.message_handler(commands=['list'])
 def start_message(message):
     bot.send_message(message.chat.id, RSS_Utils.RSS_feeds(), None)
+    time.sleep(1)
 
 
 # Вывод следующих page_count статей
@@ -148,6 +151,7 @@ def next_news(message):
             keyboard.add(four_k, five_k)
             try:
                 bot.send_message(message.chat.id, individual_list[i][0], reply_markup=keyboard, parse_mode="HTML")
+                time.sleep(1)
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
         user_pages.update({message.from_user.id: user_pages.get(message.from_user.id) + 1})
@@ -163,6 +167,7 @@ def next_news(message):
             keyboard.add(four_k, five_k)
             try:
                 bot.send_message(message.chat.id, individual_list[i][0], reply_markup=keyboard, parse_mode="HTML")
+                time.sleep(1)
             except (Exception, Error) as error:
                 print("Ошибка при работе с PostgreSQL", error)
         bot.send_message(message.chat.id, "На сегодня статьи закончились!")
@@ -176,6 +181,7 @@ def everydayNews_YN(message):
     two_k = types.InlineKeyboardButton(text='Нет', callback_data='no_everydayNews')
     keyboardYN.add(one_k, two_k)
     bot.send_message(message.chat.id, "Вы хотите каждый день получать рассылку новостей?", reply_markup=keyboardYN)
+    time.sleep(1)
 
 
 # Получаем ответ пользователя, т.е. обработка всех ответов кнопочек и всего подобного
