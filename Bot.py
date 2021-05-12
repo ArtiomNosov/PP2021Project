@@ -33,7 +33,7 @@ user_pages = {}              # Словарь со страницами поль
 
 # Функция сравнения даты статьи с текущей датой. Выдает True <=> текущая дата - days_limit <= дата статьи
 def row_days_analize(row_3):
-    limitedday = dt.datetime.today() - dt.timedelta(days = days_limit)
+    limitedday = dt.datetime.today() - dt.timedelta(days=days_limit)
     paperday = dt.datetime.strptime(f"{row_3[3]:%d-%m-%Y}", "%d-%m-%Y")
     if (limitedday <= paperday):
         return True
@@ -51,7 +51,9 @@ def get_news():
         if row_days_analize(row):
             print(row)
             content = "" + row[2]
-            rss_list.append([f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}", row[0]])
+            rss_list.append([
+                                f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}",
+                                row[0]])
     return rss_list
 
 def get_news_for_person(person_id):
@@ -66,10 +68,12 @@ def get_news_for_person(person_id):
             rss_list.append([
                                 f"   <b><u>{row[1]}</u></b>\n <b>Опубликовано:</b> {row[3]:%d/%m/%Y}\n <b>Сайт: {row[0]}</b>\n======================================\n{content[0:500]}",
                                 row[0]])
+            #print(row[5])
     return rss_list
 
 # Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
 ssl._create_default_https_context = ssl._create_unverified_context
+
 
 # Регистрация оценок пользователя
 def register_grades(person_name, rss_list, grade, number_of_artical, user_pages):
@@ -78,6 +82,7 @@ def register_grades(person_name, rss_list, grade, number_of_artical, user_pages)
     DataBase.open_db_connection()
     DataBase.write_one_row_in_censors(person_name, rss_list[int(number_of_artical)][1], int(grade))
     DataBase.close_db_connection()
+
 
 # Получение статей
 rss_list = get_news()
@@ -100,7 +105,8 @@ def start_message(message):
     bot.send_message(message.chat.id, f'<b>Этот бот имеет следующие команды:</b>\n'\
                                       f'/list - вывод всех ваших RSS ссылок, на которые вы в данный момент подписаны,\n'\
                                       f'/newnews - выводится последние {page_count} новостей,\n'\
-                                      f'/everydayNews - включение/выключение ежедневных новостей (пока что отключена).', parse_mode="HTML")
+                                      f'/everydayNews - включение/выключение ежедневных новостей (пока что отключена).',
+                     parse_mode="HTML")
 
 
 # Выводим лист всех RSS подписок.
@@ -117,13 +123,15 @@ def next_news(message):
     global user_pages
     global page_count
     DataBase.open_db_connection()
-    if get_news_for_person(DataBase.get_user_id(message.from_user.id)) != []:
-        individual_list = get_news_for_person(DataBase.get_user_id(message.from_user.id))
-        print(DataBase.get_user_id(message.from_user.id))
+    user_id = DataBase.get_user_id(message.from_user.id)
+    DataBase.close_db_connection()
+    switch = get_news_for_person(user_id) != []
+    if switch:
+        individual_list = get_news_for_person(user_id)
+        print('Personal news') #для отладки TODO: убрать
     else:
         individual_list = rss_list
-        print(DataBase.get_user_id(message.from_user.id))
-    DataBase.close_db_connection()
+        print('NO personal news') #для отладки TODO: убрать
     if user_pages.get(message.from_user.id) == None:
         user_pages.update({message.from_user.id: 0})
     if (user_pages.get(message.from_user.id) + 1) * page_count < len(individual_list):
@@ -159,6 +167,7 @@ def next_news(message):
         bot.send_message(message.chat.id, "На сегодня статьи закончились!")
         user_pages.update({message.from_user.id: user_pages.get(message.from_user.id) + 1})
 
+
 @bot.message_handler(commands=['everydayNews'])
 def everydayNews_YN(message):
     keyboardYN = types.InlineKeyboardMarkup()
@@ -166,6 +175,7 @@ def everydayNews_YN(message):
     two_k = types.InlineKeyboardButton(text='Нет', callback_data='no_everydayNews')
     keyboardYN.add(one_k, two_k)
     bot.send_message(message.chat.id, "Вы хотите каждый день получать рассылку новостей?", reply_markup=keyboardYN)
+
 
 # Получаем ответ пользователя, т.е. обработка всех ответов кнопочек и всего подобного
 @bot.callback_query_handler(func=lambda call: True)
@@ -176,9 +186,6 @@ def query_handler(call):
         register_grades(call.from_user.id, rss_list, call.data[0], call.data[1::], user_pages)
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
     global everydayNews
-
-
-
 
     if call.data == "yes_everydayNews":
         everydayNews = True
