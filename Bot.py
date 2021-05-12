@@ -204,4 +204,4 @@ def query_handler(call):
         bot.send_message(call.message.chat.id, 'Ежедневные новости отключены!')
 
 
-bot.polling(none_stop=True, interval=2)
+bot.polling(none_stop=True, interval=3)
