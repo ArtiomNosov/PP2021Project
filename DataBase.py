@@ -59,7 +59,7 @@ def get_user_id(username):
         print("Ошибка при работе с PostgreSQL", error)
         connection.rollback()
 
-    return (result[0])[0]
+    return result[0][0]
 
 def write_one_row_in_db(xml_str, from_url_str, author_str,\
                     content_str, id_str, publisher_str, tags_str, title_str,\
