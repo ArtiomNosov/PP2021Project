@@ -56,6 +56,7 @@ def get_news():
                                 row[0]])
     return rss_list
 
+
 def get_news_for_person(person_id):
     rss_list = []
     DataBase.open_db_connection()
