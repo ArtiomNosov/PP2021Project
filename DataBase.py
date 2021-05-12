@@ -139,9 +139,9 @@ def get_all_rss():
 def get_all_analized_rss(person_id):
     global connection, cursor
     try:
-        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url " \
+        sql_select_10 = "SELECT rss_id, rss_title, rss_content, rss_published, from_url, predict_score " \
                         "FROM news_entries JOIN predict_scores ON news_entries.id_news = predict_scores.id_news " \
-                        "WHERE predict_scores.id_censors = {!s}".format(person_id)
+                        "WHERE predict_scores.id_censors = {!s} ORDER BY predict_score DESC".format(person_id)
 
 
         cursor.execute(sql_select_10)
@@ -210,6 +210,3 @@ def write_one_row_in_censors(person_name, rss_id, grade):
     except (Exception, Error) as error:
         print("Ошибка при работе с PostgreSQL", error)
         connection.rollback()
-
-
-
