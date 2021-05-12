@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -17,7 +16,6 @@ from time import time
 #import googletrans
 
 #Исправление ошибки с сертификатом ssl костыль просто отменяем проверку
-#context = ssl._create_unverified_context()
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # Функция убирает теги из HTML
