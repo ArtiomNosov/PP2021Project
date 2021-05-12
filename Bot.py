@@ -23,7 +23,7 @@ with open("token.txt", "r") as f:
     print(text)
 
 
-bot = telebot.TeleBot(text)  # Токен telegram его бы лучше здесь не хранить.
+bot = telebot.TeleBot(str(text))  # Токен telegram его бы лучше здесь не хранить.
 person_name = "No_Name"      # Имя гостя (по умолчанию No_Name)
 page_count = 5               # Кол-во статей за 1 вывод
 everydayNews = False         # Ежедневная рассылка статей
