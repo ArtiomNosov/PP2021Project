@@ -70,7 +70,7 @@ def PreparationForAnalize(df):
 def Analysis(id_censor):
 
     t0 = time()
-    #DataBase.open_db_connection()
+    DataBase.open_db_connection()
     str_noname = 'SELECT news_entries.id_news,'\
     'news_entries.rss_id,'\
     'censors.id_censors,'\
@@ -100,7 +100,7 @@ def Analysis(id_censor):
     dfPredict = dfPredict.drop(["score"], axis=1)
     dfPredict = PreparationForAnalize(dfPredict)
 
-    #DataBase.close_db_connection()
+    DataBase.close_db_connection()
     t1 = time()
 
     print(f" time= {t1 - t0:7.4f} seconds")
@@ -140,7 +140,7 @@ def Analysis(id_censor):
 
     # Оцениваем статьи ML (удв опр условиям) и пишем в таблицу
 
-    #DataBase.open_db_connection()
+    DataBase.open_db_connection()
     i = 0
     for iterator in dfPredict['id_news']:
         predict_grade = 0
@@ -169,7 +169,7 @@ def Analysis(id_censor):
             except (Exception, Error) as error:
                 DataBase.connection.rollback()
         i += 1
-    #DataBase.close_db_connection()
+    DataBase.close_db_connection()
     return 0
 
 
