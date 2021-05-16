@@ -14,7 +14,7 @@ import DataBase
 import RSS_Utils #Добавляем наши утилиты связанные с RSS
 # import Mail_Utils #Добавляем наши утилиты для парсинга и сбора почты
 # import Analize_Utils #Добавляем наши утилиты анализа данных
-
+DataBase.open_db_connection()
 # TODO: Защита от спама. Когда много раз прописывется команда newnews, то бот ложится.
 # TODO: Cделать автоматическую регистрацию пользователя.
 #  Сейчас при начале диалога автоматически прописывается
@@ -34,7 +34,7 @@ person_name = "No_Name"      # Имя гостя (по умолчанию No_Nam
 page_count = 5               # Кол-во статей за 1 вывод
 everydayNews = False         # Ежедневная рассылка статей
 timeOnOnePost = 60           # Через какое время будут присылаться статьи (в секундах)
-days_limit = 5               # Насколько старые статьи будут присылаться пользователям (в днях)
+days_limit = 150             # Насколько старые статьи будут присылаться пользователям (в днях)
 user_pages = {}              # Словарь со страницами пользователей
 
 
@@ -51,9 +51,9 @@ def row_days_analize(row_3):
 # Создание списка новостей
 def get_news():
     rss_list = []
-    DataBase.open_db_connection()
+    #DataBase.open_db_connection()
     list_rss_news = DataBase.get_all_rss()
-    DataBase.close_db_connection()
+    #DataBase.close_db_connection()
     for row in list_rss_news:
         if row_days_analize(row):
             print(row)
@@ -66,9 +66,9 @@ def get_news():
 
 def get_news_for_person(person_id):
     rss_list = []
-    DataBase.open_db_connection()
+    #DataBase.open_db_connection()
     list_rss_news = DataBase.get_all_analized_rss(person_id)
-    DataBase.close_db_connection()
+    #DataBase.close_db_connection()
     for row in list_rss_news:
         if row_days_analize(row):
             print(row)
@@ -87,9 +87,9 @@ ssl._create_default_https_context = ssl._create_unverified_context
 def register_grades(person_name, rss_list, grade, number_of_artical, user_pages):
     global page_count
     print(str(person_name) + "___________" + str(number_of_artical))
-    DataBase.open_db_connection()
+    #DataBase.open_db_connection()
     DataBase.write_one_row_in_censors(person_name, rss_list[int(number_of_artical)][1], int(grade))
-    DataBase.close_db_connection()
+    #DataBase.close_db_connection()
 
 
 # Получение статей
@@ -101,9 +101,9 @@ def start_message(message):
     bot.send_message(message.chat.id, 'Приветсвтуем вас в телеграм боте! Данный бот предназначен для обучения путем '
                                       'чтения интересных для вас статей. Чтобы узнать о всех коммандах, напишите '
                                       '/help в чат.', None)
-    DataBase.open_db_connection()
+    #DataBase.open_db_connection()
     DataBase.insert_one_person(message.from_user.id)
-    DataBase.close_db_connection()
+    #DataBase.close_db_connection()
     time.sleep(1)
 
 
@@ -133,9 +133,9 @@ def next_news(message):
     global rss_list
     global user_pages
     global page_count
-    DataBase.open_db_connection()
+    #DataBase.open_db_connection()
     user_id = DataBase.get_user_id(message.from_user.id)
-    DataBase.close_db_connection()
+    #DataBase.close_db_connection()
     switch = get_news_for_person(user_id) != []
     if switch:
         individual_list = get_news_for_person(user_id)
@@ -212,3 +212,4 @@ def query_handler(call):
 
 
 bot.polling(none_stop=True, interval=3)
+DataBase.close_db_connection()
