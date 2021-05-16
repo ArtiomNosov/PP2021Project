@@ -46,7 +46,7 @@ rss_count = 0
 #translator = googletrans.Translator()
 
 # Соединяемся с базой данных
-#DataBase.open_db_connection()
+DataBase.open_db_connection()
 
 # Обрабатываем все фиды (источники)
 for tag in opml_root.findall('.//outline'):
@@ -117,7 +117,7 @@ for tag in opml_root.findall('.//outline'):
       print("===============")
 
 # Закрываем базу данных
-#DataBase.close_db_connection()
+DataBase.close_db_connection()
 # печатаем текущую дату и время остановки
 print("Сканирование RSS завершено: " + datetime.datetime.now().strftime("%d-%m-%Y %H:%M"))
 # засекаем таймер выполнения
